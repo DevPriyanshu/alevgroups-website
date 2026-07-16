@@ -46,12 +46,13 @@ const services = [
 function Verticals({ go }: { go: (page: Page) => () => void }) {
   return (
     <div className="content-page verticals-page page-enter">
+      <div className="page-grid" aria-hidden="true" />
       <div className="section-top">
         <p className="section-label">02 / WHAT WE DO</p>
         <p className="section-summary">
           Four connected verticals.
           <br />
-          One standard of care.
+          <em>One standard of care.</em>
         </p>
       </div>
       <p className="verticals-intro">
@@ -65,7 +66,9 @@ function Verticals({ go }: { go: (page: Page) => () => void }) {
           <article className="service-card" key={title}>
             <div className="service-card-top">
               <span>{number}</span>
-              <Icon size={27} strokeWidth={1.55} />
+              <span className={`service-icon service-icon-${number}`}>
+                <Icon size={22} strokeWidth={1.8} />
+              </span>
             </div>
             <h3>{title}</h3>
             <p>{text}</p>
@@ -74,7 +77,7 @@ function Verticals({ go }: { go: (page: Page) => () => void }) {
         ))}
       </div>
       <button className="page-corner-cta" onClick={go("contact")}>
-        Talk to our team <ArrowRight size={16} />
+        Talk to Our Team <ArrowRight size={16} />
       </button>
     </div>
   );

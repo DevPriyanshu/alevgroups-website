@@ -11,8 +11,9 @@ import "../App.css";
 function Contact() {
   return (
     <div className="contact-page page-enter">
+      <div className="page-grid" aria-hidden="true" />
       <div>
-        <p className="section-label">04 / LET'S CONNECT</p>
+        <p className="section-label">05 / LET'S CONNECT</p>
         <h2>
           Let’s build
           <br />
@@ -24,7 +25,7 @@ function Contact() {
           from you.
         </p>
         <p className="contact-note">
-          Tell us what you need. We will help identify the right ALEV vertical
+          Tell us what you need. We will help identify the right AlevGroups solution
           and the next practical step—an easy starting point for a purposeful
           conversation.
         </p>

@@ -1,5 +1,5 @@
 {
-"homepage": "https://devpriyanshu.github.io/alevgroups-website",
+  "homepage": "https://devpriyanshu.github.io/alevgroups-website",
   "name": "alevgroups",
   "private": true,
   "version": "0.0.0",
@@ -13,16 +13,10 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@mui/material": "^9.2.0",
-    "framer-motion": "^12.42.2",
     "lucide-react": "^1.24.0",
     "react": "^19.2.7",
-    "react-countup": "^6.5.3",
     "react-dom": "^19.2.7",
-    "react-scroll": "^1.9.3",
-    "swiper": "^14.0.5"
+    "react-router-dom": "^7.18.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

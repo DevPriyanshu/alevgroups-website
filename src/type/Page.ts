@@ -1,1 +1,1 @@
-export type Page = "home" | "about" | "verticals" | "why" | "ridsmart" | "contact";
+export type Page = "home" | "about" | "verticals" | "why" | "solutions" | "contact";

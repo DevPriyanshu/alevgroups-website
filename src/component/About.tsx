@@ -1,9 +1,4 @@
-import {
-  ArrowRight,
-  Building2,
-  CircleCheck,
-  ShieldCheck,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import "../App.css";
 import type { Page } from "../type/Page";
 
@@ -11,9 +6,12 @@ import type { Page } from "../type/Page";
 function About({ go }: { go: (page: Page) => () => void }) {
   return (
     <div className="content-page about-page page-enter">
+      <div className="page-grid" aria-hidden="true" />
       <p className="section-label">01 / WHO WE ARE</p>
       <div className="intro-content">
-        <h2>A thoughtful foundation for services that matter.</h2>
+        <h2>
+          A thoughtful foundation for <em>services that matter.</em>
+        </h2>
         <div>
           <p>
             Asha Logistics and Educational Ventures Private Limited brings
@@ -46,15 +44,15 @@ function About({ go }: { go: (page: Page) => () => void }) {
       </div>
       <div className="company-strip">
         <div>
-          <Building2 size={21} />
+          <span className="alev-logo company-logo" aria-hidden="true">A</span>
           <span>Incorporated under the Companies Act, 2013</span>
         </div>
         <div>
-          <ShieldCheck size={21} />
+          <span className="alev-logo company-logo" aria-hidden="true">A</span>
           <span>CIN: U85499MP2026PTC084982</span>
         </div>
         <div>
-          <CircleCheck size={21} />
+          <span className="alev-logo company-logo" aria-hidden="true">A</span>
           <span>Company limited by shares</span>
         </div>
       </div>

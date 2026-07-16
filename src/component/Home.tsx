@@ -1,18 +1,16 @@
-import {
-  ArrowRight,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import HeroVisual from "./HeroVisual";
 import "../App.css";
-
-type Page = "home" | "about" | "verticals" | "why" | "ridsmart" | "contact";
+import type { Page } from "../type/Page";
 
 function Home({ go }: { go: (page: Page) => () => void }) {
   return (
     <div className="hero-page page-enter">
       <div className="hero-grid"></div>
       <div className="hero-copy">
-        <p className="eyebrow company-name">
-          <span></span>Asha Logistics and Educational Ventures
+        <p className="section-label company-name">
+          <span aria-hidden="true" />
+          00 / ALEVGROUPS · ASHA LOGISTICS AND EDUCATIONAL VENTURES
         </p>
         <h1>
           Built to move
@@ -20,18 +18,25 @@ function Home({ go }: { go: (page: Page) => () => void }) {
           <em>possibility</em> forward.
         </h1>
         <p className="hero-text">
-          One-stop solutions for academy & coaching, travels & transport,
-          healthcare, facility management and utility services.
+          One connected partner for essential services that move everyday life
+          forward.
         </p>
-        <p className="audience-line">
-          For institutions · enterprises · communities · everyday life
-        </p>
+        <div
+          className="audience-line"
+          aria-label="Built for institutions, enterprises, communities, and everyday life"
+        >
+          <span className="audience-label">Built for</span>
+          <span>Institutions</span>
+          <span>Enterprises</span>
+          <span>Communities</span>
+          <span>Everyday life</span>
+        </div>
         <div className="hero-actions">
           <button className="button button-dark" onClick={go("verticals")}>
-            Explore our verticals <ArrowRight size={17} />
+            Explore Our Verticals <ArrowRight size={17} />
           </button>
           <button className="text-link" onClick={go("about")}>
-            Discover ALEV <ArrowRight size={17} />
+            Discover AlevGroups <ArrowRight size={17} />
           </button>
         </div>
       </div>
@@ -48,7 +53,7 @@ function Home({ go }: { go: (page: Page) => () => void }) {
         </span>
       </div>
       <div className="hero-footer">
-        <span>ONE COMPANY. MULTIPLE POSSIBILITIES.</span>
+        <span>ALEVGROUPS · CONNECTED POSSIBILITIES.</span>
         <span>
           INDIA <b>•</b> 2026
         </span>

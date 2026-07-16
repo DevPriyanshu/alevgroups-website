@@ -5,14 +5,14 @@
 html,
 body,
 #root {
-  height: 100%;
-  overflow: hidden;
+  min-height: 100%;
 }
 body {
   margin: 0;
   background: #f7f5ef;
   color: #1e2925;
   font-family: "Manrope", Arial, sans-serif;
+  overflow-x: hidden;
 }
 button {
   font: inherit;

@@ -1,7 +1,4 @@
-import {
-  ArrowRight,
-} from "lucide-react";
-import HeroVisual from "./HeroVisual";
+import { ArrowRight } from "lucide-react";
 import "../App.css";
 import type { Page } from "../type/Page";
 
@@ -9,23 +6,43 @@ function WhyAlev({ go }: { go: (page: Page) => () => void }) {
   return (
     <div className="why-page page-enter">
       <div className="why-grid-background"></div>
-      <div className="why-copy">
-        <p className="section-label">03 / WHY ALEV</p>
-        <h2>
-          One partner.
-          <br />
-          <em>More possibilities.</em>
-        </h2>
-        <p>
-          ALEV is built for organisations and communities looking beyond a
-          single transaction. We bring a focused, collaborative approach to
-          services that shape everyday progress.
-        </p>
-        <button className="button why-cta" onClick={go("contact")}>
-          Explore a partnership <ArrowRight size={17} />
-        </button>
+      <div className="why-intro">
+        <div className="why-copy">
+          <p className="section-label why-section-label">03 / WHY ALEVGROUPS</p>
+          <h2>
+            One partner.
+            <br />
+            <em>More possibilities.</em>
+          </h2>
+        </div>
+        <div className="why-story">
+          <p className="why-lead">
+            AlevGroups is built for organisations and communities looking beyond
+            a single transaction. We bring a focused, collaborative approach to
+            services that shape everyday progress.
+          </p>
+          <p className="why-detail">
+            We make complex service needs easier to navigate by bringing the
+            right people, processes and partners into one accountable framework.
+            That means less time coordinating and more confidence in the
+            outcome.
+          </p>
+          <button className="button why-cta" onClick={go("contact")}>
+            Explore a partnership <ArrowRight size={17} />
+          </button>
+        </div>
       </div>
-      <HeroVisual />
+      <div className="why-proof" aria-label="AlevGroups strengths">
+        <span>
+          <b>4</b> connected service verticals
+        </span>
+        <span>
+          <b>1</b> accountable point of contact
+        </span>
+        <span>
+          <b>∞</b> room for practical progress
+        </span>
+      </div>
       <div className="why-grid">
         <article>
           <span>01</span>
@@ -49,6 +66,14 @@ function WhyAlev({ go }: { go: (page: Page) => () => void }) {
           <p>
             Our model is designed to support evolving needs, from targeted
             initiatives to longer-term operating relationships.
+          </p>
+        </article>
+        <article>
+          <span>04</span>
+          <h3>People-first partnership</h3>
+          <p>
+            We listen closely, communicate clearly and build service
+            relationships that remain useful as needs change.
           </p>
         </article>
       </div>
