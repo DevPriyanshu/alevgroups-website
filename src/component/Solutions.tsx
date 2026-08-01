@@ -7,7 +7,7 @@ function Solutions({ go }: { go: (page: Page) => () => void }) {
     <div className="solutions-page page-enter">
       <div className="page-grid" aria-hidden="true" />
       <div className="solutions-note">
-        <span className="solution-dot"></span> AlevGroups service ecosystem
+        <span className="solution-dot"></span> Ridsmart Services ecosystem
       </div>
       <div className="solutions-grid">
         <div>
@@ -24,7 +24,7 @@ function Solutions({ go }: { go: (page: Page) => () => void }) {
         </div>
         <div className="solutions-copy">
           <p>
-            AlevGroups is built for convenient, responsive, and reliable
+            Ridsmart Services is built for convenient, responsive, and reliable
             everyday service delivery. It brings technology, capable people and
             trusted partners together for a better service experience.
           </p>
@@ -33,7 +33,7 @@ function Solutions({ go }: { go: (page: Page) => () => void }) {
             support, transparent coordination and a single point of service.
           </p>
           <button className="button button-light" onClick={go("contact")}>
-            Partner with AlevGroups <ArrowRight size={17} />
+            Partner with Ridsmart Services <ArrowRight size={17} />
           </button>
         </div>
       </div>

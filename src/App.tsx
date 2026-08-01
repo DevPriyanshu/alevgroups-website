@@ -155,7 +155,7 @@ function AppLayout() {
     ["home", "Home"],
     ["about", "About"],
     ["verticals", "Services"],
-    ["why", "Why AlevGroups"],
+    ["why", "Why Ridsmart Services"],
     ["solutions", "Solutions"],
     ["contact", "Contact"],
   ];
@@ -258,16 +258,16 @@ function AppLayout() {
           >
             <span className="welcome-icon" aria-hidden="true"><Sparkles size={19} /></span>
             <p className="welcome-kicker">
-              ALEVGROUPS · ASHA LOGISTICS AND EDUCATIONAL VENTURES
+              RIDSMART SERVICES · ASHA LOGISTICS AND EDUCATIONAL VENTURES
             </p>
             <h2 id="welcome-title">We’re building what’s next.</h2>
             <p id="welcome-description">
-              AlevGroups is building an application to make service journeys
+              Ridsmart Services is building an application to make service journeys
               simpler, more connected and more useful for every community we serve.
             </p>
             <p className="welcome-note">
               We’re excited to share more soon. Please close this message once
-              you’ve read it and explore AlevGroups at your own pace.
+              you’ve read it and explore Ridsmart Services at your own pace.
             </p>
             <button className="welcome-close" type="button" onClick={closeWelcomePrompt}>
               I’ve read this <Check size={16} aria-hidden="true" />
@@ -295,10 +295,9 @@ function AppLayout() {
         <button
           className="brand brand-button"
           onClick={go("home")}
-          aria-label="AlevGroups home"
+          aria-label="Ridsmart Services home"
         >
-          <span className="alev-logo" aria-hidden="true">A</span>
-          <span className="brand-copy"><strong>AlevGroups</strong><small>Solutions that move forward</small></span>
+          <img className="brand-logo" src="/brand/ridsmart-services-alevgroups-logo.png" alt="Ridsmart Services, an AlevGroups company" />
         </button>
         <nav
           id="primary-navigation"
@@ -400,8 +399,8 @@ function AppLayout() {
         </button>
         <div id="site-footer-content" className="footer-content">
           <div className="footer-brand">
-            <span className="alev-logo" aria-hidden="true">A</span>
-            <p>AlevGroups — connected solutions for essential services.</p>
+            <img className="footer-logo" src="/brand/ridsmart-services-alevgroups-logo.png" alt="Ridsmart Services, an AlevGroups company" />
+            <p>Ridsmart Services — connected solutions for essential services.</p>
           </div>
           <address className="footer-info">
             <span className="footer-label">REGISTERED OFFICE</span>
@@ -410,7 +409,7 @@ function AppLayout() {
           <div className="footer-info footer-identity">
             <span className="footer-label">CORPORATE IDENTITY</span>CIN:
             U85499MP2026PTC084982
-            <span className="footer-copyright">© 2026 AlevGroups</span>
+            <span className="footer-copyright">© 2026 Ridsmart Services</span>
           </div>
         </div>
       </footer>

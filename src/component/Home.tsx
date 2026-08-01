@@ -10,7 +10,7 @@ function Home({ go }: { go: (page: Page) => () => void }) {
       <div className="hero-copy">
         <p className="section-label company-name">
           <span aria-hidden="true" />
-          00 / ALEVGROUPS · ASHA LOGISTICS AND EDUCATIONAL VENTURES
+          00 / RIDSMART SERVICES · ASHA LOGISTICS AND EDUCATIONAL VENTURES
         </p>
         <h1>
           Built to move
@@ -36,7 +36,7 @@ function Home({ go }: { go: (page: Page) => () => void }) {
             Explore Our Verticals <ArrowRight size={17} />
           </button>
           <button className="text-link" onClick={go("about")}>
-            Discover AlevGroups <ArrowRight size={17} />
+            Discover Ridsmart Services <ArrowRight size={17} />
           </button>
         </div>
       </div>
@@ -53,7 +53,7 @@ function Home({ go }: { go: (page: Page) => () => void }) {
         </span>
       </div>
       <div className="hero-footer">
-        <span>ALEVGROUPS · CONNECTED POSSIBILITIES.</span>
+        <span>RIDSMART SERVICES · CONNECTED POSSIBILITIES.</span>
         <span>
           INDIA <b>•</b> 2026
         </span>

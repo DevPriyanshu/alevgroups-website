@@ -8,7 +8,7 @@ function WhyAlev({ go }: { go: (page: Page) => () => void }) {
       <div className="why-grid-background"></div>
       <div className="why-intro">
         <div className="why-copy">
-          <p className="section-label why-section-label">03 / WHY ALEVGROUPS</p>
+          <p className="section-label why-section-label">03 / WHY RIDSMART SERVICES</p>
           <h2>
             One partner.
             <br />
@@ -17,7 +17,7 @@ function WhyAlev({ go }: { go: (page: Page) => () => void }) {
         </div>
         <div className="why-story">
           <p className="why-lead">
-            AlevGroups is built for organisations and communities looking beyond
+            Ridsmart Services is built for organisations and communities looking beyond
             a single transaction. We bring a focused, collaborative approach to
             services that shape everyday progress.
           </p>
@@ -32,7 +32,7 @@ function WhyAlev({ go }: { go: (page: Page) => () => void }) {
           </button>
         </div>
       </div>
-      <div className="why-proof" aria-label="AlevGroups strengths">
+      <div className="why-proof" aria-label="Ridsmart Services strengths">
         <span>
           <b>4</b> connected service verticals
         </span>

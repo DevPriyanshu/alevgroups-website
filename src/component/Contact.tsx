@@ -25,7 +25,7 @@ function Contact() {
           from you.
         </p>
         <p className="contact-note">
-          Tell us what you need. We will help identify the right AlevGroups solution
+          Tell us what you need. We will help identify the right Ridsmart Services solution
           and the next practical step—an easy starting point for a purposeful
           conversation.
         </p>
@@ -40,10 +40,10 @@ function Contact() {
             <small>EMAIL</small>office.alev@gmail.com
           </span>
         </a>
-        <a href="https://www.alevgroups.in" target="_blank" rel="noreferrer">
+        <a href="https://alevgroup.in" target="_blank" rel="noreferrer">
           <Globe2 size={19} />
           <span>
-            <small>WEBSITE</small>www.alevgroups.in
+            <small>WEBSITE</small>alevgroup.in
           </span>
         </a>
         <a href="tel:+919123166632">
