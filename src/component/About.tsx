@@ -44,15 +44,15 @@ function About({ go }: { go: (page: Page) => () => void }) {
       </div>
       <div className="company-strip">
         <div>
-          <img className="company-logo" src="/brand/ridsmart-services-alevgroups-logo.png" alt="Ridsmart Services, an AlevGroups company" />
+          <img className="company-logo" src="/brand/ridsmart-services-alevgroupss-logo.png" alt="Ridsmart Services, an alevgroupss company" />
           <span>Incorporated under the Companies Act, 2013</span>
         </div>
         <div>
-          <img className="company-logo" src="/brand/ridsmart-services-alevgroups-logo.png" alt="Ridsmart Services, an AlevGroups company" />
+          <img className="company-logo" src="/brand/ridsmart-services-alevgroupss-logo.png" alt="Ridsmart Services, an alevgroupss company" />
           <span>CIN: U85499MP2026PTC084982</span>
         </div>
         <div>
-          <img className="company-logo" src="/brand/ridsmart-services-alevgroups-logo.png" alt="Ridsmart Services, an AlevGroups company" />
+          <img className="company-logo" src="/brand/ridsmart-services-alevgroupss-logo.png" alt="Ridsmart Services, an alevgroupss company" />
           <span>Company limited by shares</span>
         </div>
       </div>

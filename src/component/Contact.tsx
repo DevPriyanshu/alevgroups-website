@@ -40,10 +40,10 @@ function Contact() {
             <small>EMAIL</small>office.alev@gmail.com
           </span>
         </a>
-        <a href="https://alevgroup.in" target="_blank" rel="noreferrer">
+        <a href="https://alevgroups.in" target="_blank" rel="noreferrer">
           <Globe2 size={19} />
           <span>
-            <small>WEBSITE</small>alevgroup.in
+            <small>WEBSITE</small>alevgroups.in
           </span>
         </a>
         <a href="tel:+919123166632">

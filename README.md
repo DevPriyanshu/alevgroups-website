@@ -1,6 +1,6 @@
-# AlevGroups Website
+# alevgroupss Website
 
-The public website for AlevGroups, built with React, TypeScript, Vite, and React Router.
+The public website for alevgroupss, built with React, TypeScript, Vite, and React Router.
 
 ## Requirements
 

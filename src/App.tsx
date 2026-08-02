@@ -64,7 +64,7 @@ const pagePaths: Record<Page, string> = {
   home: "/home",
   about: "/about",
   verticals: "/services",
-  why: "/why-alevgroups",
+  why: "/why-alevgroupss",
   solutions: "/solutions",
   contact: "/contact",
 };
@@ -125,11 +125,11 @@ function AppLayout() {
   const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [showContactToast, setShowContactToast] = useState(false);
   const [showWelcomePrompt, setShowWelcomePrompt] = useState(
-    () => sessionStorage.getItem("alevgroups-welcome-seen") !== "true",
+    () => sessionStorage.getItem("alevgroupss-welcome-seen") !== "true",
   );
   const languageControlRef = useRef<HTMLDivElement>(null);
   const [darkMode, setDarkMode] = useState(
-    () => localStorage.getItem("alevgroups-theme") === "dark",
+    () => localStorage.getItem("alevgroupss-theme") === "dark",
   );
   const go = (next: Page) => () => {
     if (next === page) {
@@ -148,7 +148,7 @@ function AppLayout() {
     go("contact")();
   };
   const closeWelcomePrompt = () => {
-    sessionStorage.setItem("alevgroups-welcome-seen", "true");
+    sessionStorage.setItem("alevgroupss-welcome-seen", "true");
     setShowWelcomePrompt(false);
   };
   const navigation: [Page, string][] = [
@@ -161,7 +161,7 @@ function AppLayout() {
   ];
 
   useEffect(() => {
-    localStorage.setItem("alevgroups-theme", darkMode ? "dark" : "light");
+    localStorage.setItem("alevgroupss-theme", darkMode ? "dark" : "light");
   }, [darkMode]);
 
   useEffect(() => {
@@ -297,7 +297,7 @@ function AppLayout() {
           onClick={go("home")}
           aria-label="Ridsmart Services home"
         >
-          <img className="brand-logo" src="/brand/ridsmart-services-alevgroups-logo.png" alt="Ridsmart Services, an AlevGroups company" />
+          <img className="brand-logo" src="/brand/ridsmart-services-alevgroupss-logo.png" alt="Ridsmart Services, an alevgroupss company" />
         </button>
         <nav
           id="primary-navigation"
@@ -399,7 +399,7 @@ function AppLayout() {
         </button>
         <div id="site-footer-content" className="footer-content">
           <div className="footer-brand">
-            <img className="footer-logo" src="/brand/ridsmart-services-alevgroups-logo.png" alt="Ridsmart Services, an AlevGroups company" />
+            <img className="footer-logo" src="/brand/ridsmart-services-alevgroupss-logo.png" alt="Ridsmart Services, an alevgroupss company" />
             <p>Ridsmart Services — connected solutions for essential services.</p>
           </div>
           <address className="footer-info">
@@ -427,7 +427,7 @@ function App() {
           <Route path="/home" element={<RoutedPage Component={Home} />} />
           <Route path="/about" element={<RoutedPage Component={About} />} />
           <Route path="/services" element={<RoutedPage Component={Verticals} />} />
-          <Route path="/why-alevgroups" element={<RoutedPage Component={WhyAlev} />} />
+          <Route path="/why-alevgroupss" element={<RoutedPage Component={WhyAlev} />} />
           <Route path="/solutions" element={<RoutedPage Component={Solutions} />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<Navigate to="/home" replace />} />
