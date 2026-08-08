@@ -923,7 +923,9 @@ h2 em {
 }
 
 .verticals-page {
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 92% 5%, color-mix(in srgb, var(--lime) 13%, transparent), transparent 24rem),
+    var(--bg);
 }
 .section-top {
   display: flex;
@@ -952,21 +954,56 @@ h2 em {
   letter-spacing: 0.15em;
 }
 .verticals-intro {
-  max-width: 720px;
-  margin-bottom: 30px;
+  max-width: 760px;
+  margin: 22px 0 38px;
+}
+.service-app-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(240px, 0.85fr);
+  gap: clamp(28px, 8vw, 120px);
+  align-items: end;
+  padding: 25px 0 27px;
+  border-block: 1px solid var(--line);
+}
+.service-app-intro h2 {
+  margin: 9px 0 0;
+  font-size: clamp(32px, 3.8vw, 52px);
+}
+.service-app-intro p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.75;
 }
 .service-list {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border-top: 1px solid var(--line);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 .service-card {
-  min-height: 300px;
-  padding: 20px 18px 20px 0;
+  min-height: 320px;
+  padding: 0;
 }
-.service-card + .service-card {
-  border-left: 1px solid var(--line);
-  padding-left: 18px;
+.service-card-link {
+  display: flex;
+  width: 100%;
+  min-height: 320px;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 15px 15px 15px 5px;
+  padding: clamp(20px, 3vw, 28px);
+  background: color-mix(in srgb, var(--header) 75%, var(--bg));
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.service-card-link:hover,
+.service-card-link:focus-visible,
+.service-card.is-selected .service-card-link {
+  border-color: color-mix(in srgb, var(--forest) 62%, var(--line));
+  box-shadow: 0 13px 30px color-mix(in srgb, var(--forest) 11%, transparent);
+  transform: translateY(-3px);
 }
 .service-card-top {
   display: flex;
@@ -986,7 +1023,8 @@ h2 em {
   border-radius: 12px 12px 12px 4px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.service-card:hover .service-icon {
+.service-card-link:hover .service-icon,
+.service-card-link:focus-visible .service-icon {
   transform: translateY(-3px) rotate(-3deg);
 }
 .service-icon-01 {
@@ -1014,36 +1052,185 @@ h2 em {
 .app-shell[data-theme="dark"] .service-icon-03 { background: #482725; }
 .app-shell[data-theme="dark"] .service-icon-04 { background: #463519; }
 .service-card h3 {
-  margin: 32px 0 10px;
-  font-size: 17px;
+  max-width: 350px;
+  margin: 30px 0 10px;
+  font-size: 20px;
   letter-spacing: -0.04em;
   line-height: 1.2;
 }
 .service-card p {
   color: var(--muted);
-  font-size: 11px;
+  max-width: 510px;
+  font-size: 12px;
   line-height: 1.65;
 }
 .service-detail {
-  margin-top: 15px;
-  padding-top: 13px;
+  margin-top: 16px;
+  padding-top: 15px;
   border-top: 1px solid var(--line);
 }
-.verticals-page .page-corner-cta {
-  position: relative;
-  right: auto;
-  bottom: auto;
-  width: fit-content;
-  margin-top: 26px;
-  padding: 0;
-  display: flex;
+.service-card-action {
+  display: inline-flex;
   align-items: center;
-  gap: 5px;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  margin-top: auto;
+  border-radius: 7px;
+  padding: 11px 12px;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  color: var(--ink);
   font-size: 11px;
   font-weight: 800;
+}
+.contact-service-selection {
+  margin: 17px 0 -8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.contact-service-selection strong {
+  color: var(--ink);
+}
+.service-card-action svg {
+  transition: transform 0.2s ease;
+}
+.service-card-link:hover .service-card-action svg,
+.service-card-link:focus-visible .service-card-action svg {
+  transform: translateX(4px);
+}
+.service-app-showcase {
+  margin-top: 50px;
+  padding: clamp(20px, 4vw, 32px);
+  border: 1px solid var(--line);
+  border-radius: 18px 18px 18px 5px;
+  background: color-mix(in srgb, var(--header) 84%, var(--bg));
+}
+.service-app-showcase-highlighted {
+  animation: app-showcase-highlight 1.2s ease;
+}
+@keyframes app-showcase-highlight {
+  0%, 100% { box-shadow: none; }
+  45% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--lime) 23%, transparent); }
+}
+.service-app-showcase-content {
+  display: grid;
+  gap: 20px;
+}
+.service-app-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 9px;
+}
+.service-app-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  width: 100%;
+  border: 1px solid var(--line);
+  min-height: 43px;
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.service-app-tabs button:hover,
+.service-app-tabs button.active {
+  border-color: var(--forest);
+  background: var(--forest);
+  color: #fff;
+}
+.service-app-panel {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px 16px;
+  padding: clamp(22px, 4vw, 34px);
+  border: 1px solid color-mix(in srgb, var(--forest) 24%, var(--line));
+  border-radius: 12px 12px 12px 4px;
+  background: var(--bg);
+}
+.service-app-panel .service-icon {
+  width: 46px;
+  height: 46px;
+}
+.service-app-eyebrow {
+  color: var(--muted);
+  font: 700 9px "DM Mono", monospace;
+  letter-spacing: 0.1em;
+}
+.service-app-panel h3 {
+  margin: 5px 0 7px;
+  font-size: 21px;
+  letter-spacing: -0.04em;
+}
+.service-app-panel div > p:last-child {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+.service-app-panel ul {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.service-app-panel li {
+  min-height: 62px;
+  padding: 13px 12px 13px 28px;
+  border-left: 2px solid var(--lime);
+  background: color-mix(in srgb, var(--bg) 66%, transparent);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+  position: relative;
+}
+.service-app-panel li::before {
+  position: absolute;
+  top: 11px;
+  left: 11px;
+  color: #6d9149;
+  content: "✓";
+  font-weight: 900;
+}
+.service-team-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  margin-top: 16px;
+  padding: clamp(24px, 4vw, 36px);
+  border-radius: 16px 16px 16px 5px;
+  background: var(--forest);
+  color: #fff;
+}
+.service-team-cta .section-label {
+  color: color-mix(in srgb, var(--lime) 84%, #fff);
+}
+.service-team-cta h2 {
+  max-width: 610px;
+  margin: 9px 0 8px;
+  color: #fff;
+  font-size: clamp(27px, 3.2vw, 42px);
+}
+.service-team-cta h2 em {
+  color: var(--lime);
+}
+.service-team-cta p:last-child {
+  max-width: 520px;
+  color: #d0ddd6;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.service-team-cta .button {
+  flex: 0 0 auto;
+  min-width: 170px;
 }
 
 .solutions-page {
@@ -1461,13 +1648,11 @@ h2 em {
   .service-list {
     grid-template-columns: repeat(2, 1fr);
   }
-  .service-card:nth-child(3) {
-    border-left: 0;
-    padding-left: 0;
+  .service-app-showcase {
+    margin-top: 48px;
   }
-  .service-card:nth-child(n + 3) {
-    border-top: 1px solid var(--line);
-    padding-top: 20px;
+  .service-app-tabs {
+    grid-template-columns: repeat(2, 1fr);
   }
   .page-corner-cta {
     position: static;
@@ -1611,6 +1796,11 @@ h2 em {
     margin-top: 12px;
     text-align: left;
   }
+  .service-app-intro {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 21px 0;
+  }
   .service-list {
     grid-template-columns: 1fr;
   }
@@ -1618,12 +1808,29 @@ h2 em {
   .service-card + .service-card,
   .service-card:nth-child(3) {
     min-height: 0;
-    padding: 20px 0;
-    border-left: 0;
-    border-top: 1px solid var(--line);
+    padding: 0;
+    border: 0;
   }
-  .service-card:first-child {
-    border-top: 0;
+  .service-card-link {
+    min-height: 0;
+    padding: 22px;
+  }
+  .service-app-panel ul {
+    grid-template-columns: 1fr;
+  }
+  .service-app-panel {
+    grid-template-columns: 1fr;
+  }
+  .service-app-tabs {
+    grid-template-columns: 1fr;
+  }
+  .service-team-cta {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .service-team-cta .button {
+    width: 100%;
   }
   .solutions-note {
     align-self: flex-start;

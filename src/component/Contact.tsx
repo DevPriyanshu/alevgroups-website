@@ -5,10 +5,17 @@ import {
   MapPin,
   Phone,
 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import "../App.css";
 
 
 function Contact() {
+  const [searchParams] = useSearchParams();
+  const service = searchParams.get("service");
+  const enquiryLink = service
+    ? `mailto:office.alev@gmail.com?subject=${encodeURIComponent(`Service enquiry: ${service}`)}`
+    : "mailto:office.alev@gmail.com";
+
   return (
     <div className="contact-page page-enter">
       <div className="page-grid" aria-hidden="true" />
@@ -29,7 +36,8 @@ function Contact() {
           and the next practical step—an easy starting point for a purposeful
           conversation.
         </p>
-        <a className="button button-sun" href="mailto:office.alev@gmail.com">
+        {service && <p className="contact-service-selection">Service selected: <strong>{service}</strong></p>}
+        <a className="button button-sun" href={enquiryLink}>
           Start a conversation <ArrowRight size={17} />
         </a>
       </div>
