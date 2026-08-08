@@ -297,7 +297,7 @@ function AppLayout() {
           onClick={go("home")}
           aria-label="Ridsmart Services home"
         >
-          <img className="brand-logo" src="/brand/ridsmart-services-alevgroupss-logo.png" alt="Ridsmart Services, an alevgroupss company" />
+          <img className="brand-logo" src="/brand/ridsmart-services-alevgroupss-logo-blue-orange.png" alt="Ridsmart Services, an alevgroupss company" />
         </button>
         <nav
           id="primary-navigation"
@@ -399,7 +399,7 @@ function AppLayout() {
         </button>
         <div id="site-footer-content" className="footer-content">
           <div className="footer-brand">
-            <img className="footer-logo" src="/brand/ridsmart-services-alevgroupss-logo.png" alt="Ridsmart Services, an alevgroupss company" />
+            <img className="footer-logo" src="/brand/ridsmart-services-alevgroupss-logo-blue-orange.png" alt="Ridsmart Services, an alevgroupss company" />
             <p>Ridsmart Services — connected solutions for essential services.</p>
           </div>
           <address className="footer-info">

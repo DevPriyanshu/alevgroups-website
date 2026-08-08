@@ -1,16 +1,18 @@
 :root {
   --bg: #ffffff;
-  --surface: #ebebe8;
-  --ink: #1b1d1e;
-  --muted: #62676a;
-  --line: rgba(27, 29, 30, 0.16);
-  --forest: #121416;
-  --lime: #c9df62;
-  --coral: #d9795f;
+  --surface: #edf3f9;
+  --ink: #123b63;
+  --muted: #5b7188;
+  --line: rgba(18, 59, 99, 0.16);
+  --forest: #0b3d6b;
+  --lime: #f5a623;
+  --accent: #b85d00;
+  --coral: #e8783c;
+  --button-ink: #102f4d;
   --header: rgba(255, 255, 255, 0.94);
-  --footer: #0a0b0c;
-  --footer-text: #d9dcda;
-  --focus: #a8bd53;
+  --footer: #082e52;
+  --footer-text: #dceaf6;
+  --focus: #e48712;
 }
 
 * {
@@ -107,7 +109,7 @@ button {
   color: var(--lime);
 }
 .welcome-kicker {
-  color: #6d9149;
+  color: var(--accent);
   font: 800 9px/1.4 "DM Mono", monospace;
   letter-spacing: 0.12em;
 }
@@ -135,7 +137,7 @@ button {
   border-radius: 7px;
   padding: 12px 15px;
   background: var(--lime);
-  color: #152d26;
+  color: var(--button-ink);
   cursor: pointer;
   font-size: 12px;
   font-weight: 800;
@@ -166,7 +168,7 @@ button {
 .contact-toast > svg {
   flex: 0 0 auto;
   margin-top: 1px;
-  color: #688d43;
+  color: var(--accent);
 }
 .contact-toast div {
   display: grid;
@@ -220,18 +222,20 @@ button {
 }
 
 .app-shell[data-theme="dark"] {
-  --bg: #000000;
-  --surface: #000000;
-  --ink: #eef2ed;
-  --muted: #b2beb8;
-  --line: rgba(238, 242, 237, 0.15);
-  --forest: #111214;
-  --lime: #d6e979;
-  --coral: #ef977e;
-  --header: rgba(0, 0, 0, 0.94);
-  --footer: #030405;
-  --footer-text: #c5d0ca;
-  --focus: #d6e979;
+  --bg: #071a2d;
+  --surface: #0b2239;
+  --ink: #edf6ff;
+  --muted: #b4c7d9;
+  --line: rgba(237, 246, 255, 0.16);
+  --forest: #0d4e80;
+  --lime: #ffb547;
+  --accent: #ffb547;
+  --coral: #ff9255;
+  --button-ink: #102f4d;
+  --header: rgba(7, 26, 45, 0.94);
+  --footer: #041525;
+  --footer-text: #d5e6f6;
+  --focus: #ffb547;
 }
 
 .site-header {
@@ -409,7 +413,7 @@ button {
 }
 .language-options button svg {
   flex: 0 0 auto;
-  color: #5d7d35;
+  color: var(--accent);
 }
 .google-translate-element,
 .goog-te-banner-frame.skiptranslate {
@@ -553,7 +557,7 @@ h2 {
 }
 h1 em,
 h2 em {
-  color: #6d9149;
+  color: var(--accent);
   font-family: "Playfair Display", serif;
   font-weight: 700;
 }
@@ -589,7 +593,7 @@ h2 em {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #000000;
+  color: var(--ink);
 }
 .eyebrow span,
 .company-name > span {
@@ -663,7 +667,7 @@ h2 em {
 .button-dark,
 .button-sun {
   background: var(--lime);
-  color: #152d26;
+  color: var(--button-ink);
 }
 .text-link {
   display: inline-flex;
@@ -750,7 +754,7 @@ h2 em {
   height: 280px;
   top: 64px;
   right: 52px;
-  background: #99b77b;
+  background: #4f9ed2;
   opacity: 0.3;
 }
 .orb-two {
@@ -825,7 +829,7 @@ h2 em {
   border-radius: 8px;
   padding: 9px 12px;
   background: rgba(250, 250, 248, 0.9);
-  color: #1b1d1e;
+  color: var(--ink);
   font-size: 10px;
   font-weight: 800;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.17);
@@ -944,7 +948,7 @@ h2 em {
   font-weight: 800;
 }
 .section-summary em {
-  color: #6d9149;
+  color: var(--accent);
   font-style: italic;
   font-weight: 700;
 }
@@ -1028,9 +1032,9 @@ h2 em {
   transform: translateY(-3px) rotate(-3deg);
 }
 .service-icon-01 {
-  color: #287552;
-  background: #e5f3e9;
-  box-shadow: 0 8px 16px rgba(40, 117, 82, 0.12);
+  color: #176da3;
+  background: #e4f1fa;
+  box-shadow: 0 8px 16px rgba(23, 109, 163, 0.12);
 }
 .service-icon-02 {
   color: #286fa5;
@@ -1047,7 +1051,7 @@ h2 em {
   background: #f8efd9;
   box-shadow: 0 8px 16px rgba(154, 106, 30, 0.12);
 }
-.app-shell[data-theme="dark"] .service-icon-01 { background: #163b2b; }
+.app-shell[data-theme="dark"] .service-icon-01 { background: #15364d; }
 .app-shell[data-theme="dark"] .service-icon-02 { background: #15364d; }
 .app-shell[data-theme="dark"] .service-icon-03 { background: #482725; }
 .app-shell[data-theme="dark"] .service-icon-04 { background: #463519; }
@@ -1195,7 +1199,7 @@ h2 em {
   position: absolute;
   top: 11px;
   left: 11px;
-  color: #6d9149;
+  color: var(--accent);
   content: "✓";
   font-weight: 900;
 }
@@ -1334,7 +1338,7 @@ h2 em {
   letter-spacing: 0.15em;
 }
 .why-copy h2 em {
-  color: #6d9149;
+  color: var(--accent);
 }
 .why-story {
   max-width: 500px;
@@ -1420,8 +1424,8 @@ h2 em {
   height: 24px;
   place-items: center;
   border-radius: 6px 6px 6px 2px;
-  background: rgba(109, 145, 73, 0.12);
-  color: #6d9149;
+  background: color-mix(in srgb, var(--lime) 14%, transparent);
+  color: var(--accent);
   font:
     700 10px "DM Mono",
     monospace;
@@ -1467,7 +1471,7 @@ h2 em {
   margin: 20px 0;
 }
 .contact-page h2 em {
-  color: #6d9149;
+  color: var(--accent);
 }
 .contact-lead,
 .contact-note {
@@ -1507,7 +1511,7 @@ h2 em {
 .contact-details svg {
   flex: 0 0 auto;
   margin-top: 3px;
-  color: #6d9149;
+  color: var(--accent);
 }
 
 .site-footer {
