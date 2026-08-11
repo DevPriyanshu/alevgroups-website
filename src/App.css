@@ -13,6 +13,7 @@
   --footer: #082e52;
   --footer-text: #dceaf6;
   --focus: #e48712;
+  --page-corner-glow: rgba(245, 166, 35, 0.13);
 }
 
 * {
@@ -236,6 +237,7 @@ button {
   --footer: #041525;
   --footer-text: #d5e6f6;
   --focus: #ffb547;
+  --page-corner-glow: rgba(0, 0, 0, 0.32);
 }
 
 .site-header {
@@ -570,7 +572,9 @@ h2 em {
   padding: clamp(56px, 9vh, 100px) clamp(24px, 12vw, 176px) 90px;
 }
 .hero-page {
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 92% 5%, var(--page-corner-glow), transparent 24rem),
+    var(--bg);
   color: var(--ink);
 }
 .hero-grid,
@@ -858,7 +862,9 @@ h2 em {
   position: relative;
 }
 .about-page {
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 92% 5%, var(--page-corner-glow), transparent 24rem),
+    var(--bg);
 }
 .intro-content {
   display: grid;
@@ -928,7 +934,7 @@ h2 em {
 
 .verticals-page {
   background:
-    radial-gradient(circle at 92% 5%, color-mix(in srgb, var(--lime) 13%, transparent), transparent 24rem),
+    radial-gradient(circle at 92% 5%, var(--page-corner-glow), transparent 24rem),
     var(--bg);
 }
 .section-top {
@@ -1241,7 +1247,9 @@ h2 em {
   display: flex;
   flex-direction: column;
   min-height: 590px;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 92% 5%, var(--page-corner-glow), transparent 24rem),
+    var(--bg);
   color: var(--ink);
 }
 .solutions-note {
@@ -1304,7 +1312,9 @@ h2 em {
 .why-page {
   min-height: auto;
   align-self: flex-start;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 92% 5%, var(--page-corner-glow), transparent 24rem),
+    var(--bg);
 }
 .why-grid-background {
   opacity: 0.55;
@@ -1461,7 +1471,9 @@ h2 em {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
   gap: min(12vw, 150px);
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 92% 5%, var(--page-corner-glow), transparent 24rem),
+    var(--bg);
   color: var(--ink);
 }
 .contact-page .section-label {
