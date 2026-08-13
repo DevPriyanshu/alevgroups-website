@@ -28,7 +28,7 @@ import "./App.css";
 import Home from "./component/Home";
 import About from "./component/About";
 import Solutions from "./component/Solutions";
-import Verticals from "./component/Verticals";
+import Verticals, { Applications } from "./component/Verticals";
 import WhyAlev from "./component/WhyAlev";
 import Contact from "./component/Contact";
 import type { Page } from "./type/Page";
@@ -427,6 +427,10 @@ function App() {
           <Route path="/home" element={<RoutedPage Component={Home} />} />
           <Route path="/about" element={<RoutedPage Component={About} />} />
           <Route path="/services" element={<RoutedPage Component={Verticals} />} />
+          <Route path="/ridsmart-services-app" element={<Navigate to="/ridsmart-services-app/academy-coaching" replace />} />
+          <Route path="/ridsmart-services-app/:service" element={<Applications />} />
+          <Route path="/applications" element={<Navigate to="/ridsmart-services-app" replace />} />
+          <Route path="/applications/*" element={<Navigate to="/ridsmart-services-app" replace />} />
           <Route path="/why-alevgroupss" element={<RoutedPage Component={WhyAlev} />} />
           <Route path="/solutions" element={<RoutedPage Component={Solutions} />} />
           <Route path="/contact" element={<Contact />} />

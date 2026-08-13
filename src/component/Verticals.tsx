@@ -4,11 +4,12 @@ import {
   HeartPulse,
   GraduationCap,
   Maximize2,
-  Minimize2,
   Truck,
+  X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import "../App.css";
 import type { Page } from "../type/Page";
 
@@ -20,6 +21,7 @@ type Service = {
   detail: string;
   appSummary: string;
   appFeatures: string[];
+  slug: string;
   appUrl?: string;
 };
 
@@ -27,6 +29,7 @@ const services: Service[] = [
   {
     icon: GraduationCap,
     number: "01",
+    slug: "academy-coaching",
     title: "Academy & Coaching",
     text: "Learning ecosystems that help institutions and individuals move forward with clarity.",
     detail:
@@ -37,6 +40,7 @@ const services: Service[] = [
   {
     icon: Truck,
     number: "02",
+    slug: "travels-transport",
     title: "Travels & Transport",
     text: "Connected movement for people, goods and businesses across local and wider networks.",
     detail:
@@ -47,6 +51,7 @@ const services: Service[] = [
   {
     icon: HeartPulse,
     number: "03",
+    slug: "healthcare",
     title: "Healthcare",
     text: "Patient-centred healthcare support enabled by dependable diagnostic and care networks.",
     detail:
@@ -57,6 +62,7 @@ const services: Service[] = [
   {
     icon: Settings,
     number: "04",
+    slug: "facility-management",
     title: "Facility Management & Utility Services",
     text: "Practical on-ground support that keeps residential and commercial spaces running smoothly.",
     detail:
@@ -67,10 +73,9 @@ const services: Service[] = [
 ];
 
 function Verticals({ go }: { go: (page: Page) => () => void }) {
+  const navigate = useNavigate();
   const [selectedServiceNumber, setSelectedServiceNumber] = useState(services[0].number);
-  const [isAppShowcaseHighlighted, setIsAppShowcaseHighlighted] = useState(false);
   const [appWindowState, setAppWindowState] = useState<"normal" | "minimized" | "maximized">("normal");
-  const appShowcaseRef = useRef<HTMLElement>(null);
   const appWindowRef = useRef<HTMLDivElement>(null);
   const selectedService = services.find(({ number }) => number === selectedServiceNumber) ?? services[0];
   const SelectedIcon = selectedService.icon;
@@ -90,25 +95,19 @@ function Verticals({ go }: { go: (page: Page) => () => void }) {
     if (appWindowState !== "maximized") return;
 
     const pageStage = document.querySelector(".page-stage");
+    const appShell = document.querySelector(".app-shell");
     pageStage?.classList.add("app-window-open");
-    return () => pageStage?.classList.remove("app-window-open");
+    appShell?.classList.add("app-window-open");
+    return () => {
+      pageStage?.classList.remove("app-window-open");
+      appShell?.classList.remove("app-window-open");
+    };
   }, [appWindowState]);
 
-  const showAppExperience = (serviceNumber: string) => () => {
-    setSelectedServiceNumber(serviceNumber);
-    setIsAppShowcaseHighlighted(false);
-    window.requestAnimationFrame(() => setIsAppShowcaseHighlighted(true));
-    appShowcaseRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  };
   const toggleAppWindowSize = () => {
-    if (appWindowState === "maximized") {
-      setAppWindowState("normal");
-      return;
-    }
-
-    setAppWindowState("maximized");
-    window.requestAnimationFrame(() => appWindowRef.current?.focus());
+    navigate(`/ridsmart-services-app/${selectedService.slug}`);
   };
+  const exitApp = () => setAppWindowState("normal");
 
   return (
     <div className="content-page verticals-page page-enter">
@@ -138,7 +137,7 @@ function Verticals({ go }: { go: (page: Page) => () => void }) {
         operating mindset.
       </p>
       <div className="service-list">
-        {services.map(({ icon: Icon, number, title, text, detail, appUrl }) => (
+        {services.map(({ icon: Icon, number, title, text, detail, appUrl, slug }) => (
           <article
             className={`service-card${selectedServiceNumber === number ? " is-selected" : ""}`}
             key={title}
@@ -148,7 +147,7 @@ function Verticals({ go }: { go: (page: Page) => () => void }) {
                 <ServiceCardContent Icon={Icon} number={number} title={title} text={text} detail={detail} live />
               </a>
             ) : (
-              <button className="service-card-link" type="button" onClick={showAppExperience(number)}>
+              <button className="service-card-link" type="button" onClick={() => navigate(`/ridsmart-services-app/${slug}`)}>
                 <ServiceCardContent Icon={Icon} number={number} title={title} text={text} detail={detail} />
               </button>
             )}
@@ -157,8 +156,7 @@ function Verticals({ go }: { go: (page: Page) => () => void }) {
       </div>
       <section
         aria-labelledby="app-experience-title"
-        className={`service-app-showcase${isAppShowcaseHighlighted ? " service-app-showcase-highlighted" : ""}`}
-        ref={appShowcaseRef}
+        className="service-app-showcase"
       >
         <div className={`service-app-window is-${appWindowState}`} ref={appWindowRef} tabIndex={-1}>
           <header className="service-app-window-bar">
@@ -171,18 +169,22 @@ function Verticals({ go }: { go: (page: Page) => () => void }) {
                   <Minus size={15} aria-hidden="true" />
                 </button>
               )} */}
-              {appWindowState === "minimized" ? (
+              {appWindowState === "maximized" ? (
+                <button aria-label="Exit application" data-tooltip="Exit app" onClick={exitApp} type="button">
+                  <X size={16} aria-hidden="true" />
+                </button>
+              ) : appWindowState === "minimized" ? (
                 <button aria-label="Restore application window" data-tooltip="Restore" onClick={() => setAppWindowState("normal")} type="button">
                   <Maximize2 size={14} aria-hidden="true" />
                 </button>
               ) : (
                 <button
-                  aria-label={appWindowState === "maximized" ? "Restore application window" : "Maximize application window"}
-                  data-tooltip={appWindowState === "maximized" ? "Restore" : "Expand"}
+                  aria-label="Open application in full screen"
+                  data-tooltip="Open full screen"
                   onClick={toggleAppWindowSize}
                   type="button"
                 >
-                  {appWindowState === "maximized" ? <Minimize2 size={14} aria-hidden="true" /> : <Maximize2 size={14} aria-hidden="true" />}
+                  <Maximize2 size={14} aria-hidden="true" />
                 </button>
               )}
             </div>
@@ -275,6 +277,73 @@ function ServiceCardContent({
         {live ? "Open service app" : "Explore app experience"} <ArrowRight size={15} aria-hidden="true" />
       </span>
     </>
+  );
+}
+
+export function Applications() {
+  const navigate = useNavigate();
+  const { service: serviceSlug } = useParams();
+  const selectedService = services.find(({ slug }) => slug === serviceSlug) ?? services[0];
+  const SelectedIcon = selectedService.icon;
+
+  useEffect(() => {
+    const pageStage = document.querySelector(".page-stage");
+    const appShell = document.querySelector(".app-shell");
+    pageStage?.classList.add("app-window-open");
+    appShell?.classList.add("app-window-open");
+    return () => {
+      pageStage?.classList.remove("app-window-open");
+      appShell?.classList.remove("app-window-open");
+    };
+  }, []);
+
+  return (
+    <main className="applications-page">
+      <section className="service-app-window is-maximized" aria-label="Ridsmart Services application">
+        <header className="service-app-window-bar">
+          <div className="service-app-window-title">
+            <span aria-hidden="true" /> <span>Ridsmart Services app</span>
+          </div>
+          <div className="service-app-window-controls">
+            <button aria-label="Exit application" data-tooltip="Exit app" onClick={() => navigate("/services")} type="button">
+              <X size={16} aria-hidden="true" />
+            </button>
+          </div>
+        </header>
+        <div className="service-app-showcase-content">
+          <nav className="service-app-tabs" aria-label="Service applications">
+            {services.map(({ icon: Icon, number, slug, title }) => (
+              <button
+                aria-current={selectedService.slug === slug ? "page" : undefined}
+                className={selectedService.slug === slug ? "active" : ""}
+                key={slug}
+                onClick={() => navigate(`/ridsmart-services-app/${slug}`)}
+                type="button"
+              >
+                <Icon size={16} aria-hidden="true" /> {number} · {title}
+              </button>
+            ))}
+          </nav>
+          <article className="service-app-panel">
+            <span className={`service-icon service-icon-${selectedService.number}`}>
+              <SelectedIcon size={22} strokeWidth={1.8} />
+            </span>
+            <div>
+              <p className="service-app-eyebrow">{selectedService.number} / APP EXPERIENCE</p>
+              <h3>{selectedService.title}</h3>
+              <p>{selectedService.appSummary}</p>
+            </div>
+            <ul>
+              {selectedService.appFeatures.map((feature) => <li key={feature}>{feature}</li>)}
+            </ul>
+            <p className="service-app-coming-soon">
+              <strong>Coming soon</strong>
+              We’re preparing these app features to make every service journey simpler from day one.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
   );
 }
 
