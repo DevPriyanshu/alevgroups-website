@@ -131,6 +131,22 @@ function AppLayout() {
   const [darkMode, setDarkMode] = useState(
     () => localStorage.getItem("alevgroupss-theme") === "dark",
   );
+  const sessionAuth = (() => {
+    const raw = localStorage.getItem("ridsmart-academy-auth");
+    if (!raw) return null;
+
+    try {
+      const parsed = JSON.parse(raw) as { role?: string; email?: string; name?: string };
+      if (!parsed.email && !parsed.name && !parsed.role) return null;
+      return {
+        role: parsed.role === "ADMIN" ? "ADMIN" : "USER",
+        email: parsed.email || "",
+        name: parsed.name || "User",
+      };
+    } catch {
+      return null;
+    }
+  })();
   const go = (next: Page) => () => {
     if (next === page) {
       setMobileOpen(false);
@@ -150,6 +166,10 @@ function AppLayout() {
   const closeWelcomePrompt = () => {
     sessionStorage.setItem("alevgroupss-welcome-seen", "true");
     setShowWelcomePrompt(false);
+  };
+  const handleLogout = () => {
+    localStorage.removeItem("ridsmart-academy-auth");
+    navigate("/home", { replace: true });
   };
   const navigation: [Page, string][] = [
     ["home", "Home"],
@@ -355,6 +375,12 @@ function AppLayout() {
                 </div>
               )}
             </div>
+          {sessionAuth && (
+            <div className="session-user-pill" aria-live="polite">
+              <span className="session-user-role">{sessionAuth.role}</span>
+              <strong>{sessionAuth.name}</strong>
+            </div>
+          )}
           <button
             className="theme-toggle"
             onClick={() => setDarkMode((mode) => !mode)}
@@ -365,13 +391,19 @@ function AppLayout() {
           >
             {darkMode ? <Sun size={16} /> : <Moon size={16} />}
           </button>
-          <button
-            className="header-cta"
-            onClick={handleContactClick}
-            aria-label="Contact us"
-          >
-            Connect with us <ArrowRight size={15} />
-          </button>
+          {sessionAuth ? (
+            <button className="header-logout" type="button" onClick={handleLogout}>
+              Logout
+            </button>
+          ) : (
+            <button
+              className="header-cta"
+              onClick={handleContactClick}
+              aria-label="Contact us"
+            >
+              Connect with us <ArrowRight size={15} />
+            </button>
+          )}
           <button
             className="menu-button"
             onClick={() => setMobileOpen((open) => !open)}
@@ -428,8 +460,10 @@ function App() {
           <Route path="/about" element={<RoutedPage Component={About} />} />
           <Route path="/services" element={<RoutedPage Component={Verticals} />} />
           <Route path="/ridsmart-services-app" element={<Navigate to="/ridsmart-services-app/academy-coaching" replace />} />
+          <Route path="/ridsmart-services-app/:service/:role" element={<Applications />} />
           <Route path="/ridsmart-services-app/:service" element={<Applications />} />
           <Route path="/applications" element={<Navigate to="/ridsmart-services-app" replace />} />
+          <Route path="/applications/:service" element={<Applications />} />
           <Route path="/applications/*" element={<Navigate to="/ridsmart-services-app" replace />} />
           <Route path="/why-alevgroupss" element={<RoutedPage Component={WhyAlev} />} />
           <Route path="/solutions" element={<RoutedPage Component={Solutions} />} />
