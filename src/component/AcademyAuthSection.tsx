@@ -257,7 +257,7 @@ export function AcademyAuthSection({
                       fullName: event.target.value,
                     }))
                   }
-                  placeholder="Priyanshu Yadav"
+                  placeholder="Your Name"
                 />
               </label>
 
@@ -335,7 +335,7 @@ export function AcademyAuthSection({
                         phone: event.target.value.replace(/\D/g, ""),
                       }))
                     }
-                    placeholder="9876543210"
+                    placeholder="10-digit mobile number"
                     inputMode="numeric"
                   />
                 </label>
