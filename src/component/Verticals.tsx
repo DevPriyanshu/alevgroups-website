@@ -330,7 +330,7 @@ function Verticals({ go }: { go: (page: Page) => () => void }) {
           </article>
         ))}
       </div>
-      <section
+      {/* <section
         aria-labelledby="app-experience-title"
         className={`service-app-showcase${isAppShowcaseHighlighted ? " service-app-showcase-highlighted" : ""}`}
         ref={appShowcaseRef}
@@ -401,7 +401,7 @@ function Verticals({ go }: { go: (page: Page) => () => void }) {
             </div>
           )}
         </div>
-      </section>
+      </section> */}
       <section className="service-team-cta" aria-labelledby="service-team-cta-title">
         <div>
           <p className="section-label">LET’S BUILD WHAT’S NEXT</p>
