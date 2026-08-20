@@ -2,8 +2,8 @@ import {
   ArrowRight,
   GraduationCap,
   HeartPulse,
-  Maximize2,
-  Minimize2,
+  // Maximize2,
+  // Minimize2,
   Settings,
   Truck,
 } from "lucide-react";
@@ -239,12 +239,12 @@ async function verifyCode(target: string, code: string, verificationType: Verifi
 function Verticals({ go }: { go: (page: Page) => () => void }) {
   const navigate = useNavigate();
   const [selectedServiceNumber, setSelectedServiceNumber] = useState(services[0].number);
-  const [isAppShowcaseHighlighted, setIsAppShowcaseHighlighted] = useState(false);
+  // const [isAppShowcaseHighlighted, setIsAppShowcaseHighlighted] = useState(false);
   const [appWindowState, setAppWindowState] = useState<"normal" | "minimized" | "maximized">("normal");
   const appShowcaseRef = useRef<HTMLElement>(null);
-  const appWindowRef = useRef<HTMLDivElement>(null);
-  const selectedService = services.find(({ number }) => number === selectedServiceNumber) ?? services[0];
-  const SelectedIcon = selectedService.icon;
+  // const appWindowRef = useRef<HTMLDivElement>(null);
+  // const selectedService = services.find(({ number }) => number === selectedServiceNumber) ?? services[0];
+  // const SelectedIcon = selectedService.icon;
 
   useEffect(() => {
     if (appWindowState !== "maximized") return;
@@ -271,19 +271,19 @@ function Verticals({ go }: { go: (page: Page) => () => void }) {
     if (targetService.appUrl) {
       navigate(targetService.appUrl);
     }
-    setIsAppShowcaseHighlighted(false);
-    window.requestAnimationFrame(() => setIsAppShowcaseHighlighted(true));
+    // setIsAppShowcaseHighlighted(false);
+    // window.requestAnimationFrame(() => setIsAppShowcaseHighlighted(true));
     appShowcaseRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
-  const toggleAppWindowSize = () => {
-    if (appWindowState === "maximized") {
-      setAppWindowState("normal");
-      return;
-    }
-    setAppWindowState("maximized");
-    window.requestAnimationFrame(() => appWindowRef.current?.focus());
-  };
+  // const toggleAppWindowSize = () => {
+  //   if (appWindowState === "maximized") {
+  //     setAppWindowState("normal");
+  //     return;
+  //   }
+  //   setAppWindowState("maximized");
+  //   window.requestAnimationFrame(() => appWindowRef.current?.focus());
+  // };
 
   return (
     <div className="content-page verticals-page page-enter">
