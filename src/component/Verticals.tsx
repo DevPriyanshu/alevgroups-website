@@ -12,6 +12,12 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import "../App.css";
 import type { Page } from "../type/Page";
+import { API_BASE_URL } from "../config/api";
+import { AcademyAuthSection } from "./AcademyAuthSection";
+import { AcademyDashboard } from "./AcademyDashboard";
+import { AcademyOtpStep } from "./AcademyOtpStep";
+import { AcademyRequestLoader } from "./AcademyRequestLoader";
+import { ServiceCardContent } from "./ServiceCardContent";
 
 type Service = {
   icon: LucideIcon;
@@ -27,7 +33,7 @@ type Service = {
 
 type UserRole = "ADMIN" | "USER";
 
-type AuthState = {
+export type AuthState = {
   role: UserRole;
   token: string;
   email: string;
@@ -44,8 +50,38 @@ type AuthResponse = {
   type?: string;
 };
 
-const API_BASE_URL = "http://localhost:8080";
+type VerificationType = "EMAIL" | "PHONE";
+
+type VerificationCodeResponse = {
+  success?: boolean;
+  verified?: boolean;
+  status?: string;
+  message?: string;
+};
+
+class ApiError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
 const AUTH_KEY = "ridsmart-academy-auth";
+
+const normalizePhone = (phone: string) => {
+  const digits = phone.replace(/\D/g, "");
+  return digits ? `+${digits}` : "";
+};
+
+const isValidPhone = (phone: string) => {
+  const digitCount = phone.replace(/\D/g, "").length;
+  return digitCount >= 7 && digitCount <= 15;
+};
+
+const isValidEmail = (email: string) => /^\S+@\S+\.\S+$/.test(email);
 
 const getStoredAuth = (): AuthState | null => {
   const raw = localStorage.getItem(AUTH_KEY);
@@ -136,7 +172,7 @@ const services: Service[] = [
   },
 ];
 
-async function postAuthJson<T>(path: string, body: Record<string, string>): Promise<T> {
+async function postAuthJson<T>(path: string, body: Record<string, string | boolean>): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: "POST",
     headers: {
@@ -147,7 +183,16 @@ async function postAuthJson<T>(path: string, body: Record<string, string>): Prom
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(errorText || `Request failed with ${response.status}`);
+    let message = errorText || `Request failed with ${response.status}`;
+
+    try {
+      const errorBody = JSON.parse(errorText) as { message?: string };
+      message = errorBody.message || message;
+    } catch {
+      // Keep a non-JSON error response as the message.
+    }
+
+    throw new ApiError(response.status, message);
   }
 
   return (await response.json()) as T;
@@ -173,6 +218,22 @@ async function fetchWithToken<T>(path: string, token: string, options: RequestIn
   }
 
   return (await response.json()) as T;
+}
+
+async function sendVerificationCode(target: string, verificationType: VerificationType = "PHONE"): Promise<void> {
+  const payload: Record<string, string | boolean> = verificationType === "PHONE"
+    ? { phone: normalizePhone(target), verificationType }
+    : { email: target.trim().toLowerCase(), verificationType };
+
+  await postAuthJson<{ message?: string }>("/api/auth/send-code", payload);
+}
+
+async function verifyCode(target: string, code: string, verificationType: VerificationType = "PHONE"): Promise<VerificationCodeResponse> {
+  const payload: Record<string, string | boolean> = verificationType === "PHONE"
+    ? { phone: normalizePhone(target), code }
+    : { email: target.trim().toLowerCase(), code };
+
+  return postAuthJson<VerificationCodeResponse>("/api/auth/verify-code", payload);
 }
 
 function Verticals({ go }: { go: (page: Page) => () => void }) {
@@ -362,6 +423,321 @@ export function Applications() {
   const { service } = useParams();
   const activeService = services.find((item) => item.slug === service) ?? services[0];
 
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [pendingRequestCount, setPendingRequestCount] = useState(0);
+  const [auth, setAuth] = useState<AuthState | null>(() => getStoredAuth());
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [loginForm, setLoginForm] = useState({ identifier: "", password: "" });
+  const [registerForm, setRegisterForm] = useState({ fullName: "",countryCode: "+91", phone: "", email: "", password: "" });
+  const [protectedData, setProtectedData] = useState<{ message?: string; total?: number; data?: unknown } | null>(null);
+  const [registerStep, setRegisterStep] = useState<"phone" | "otp" | "verified">("phone");
+  const [verificationPhone, setVerificationPhone] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [registerStatus, setRegisterStatus] = useState<"idle" | "sending-otp" | "otp-sent" | "verifying-otp" | "verified" | "registering" | "failed">("idle");
+
+  const runRequest = async <T,>(request: () => Promise<T>): Promise<T> => {
+    setPendingRequestCount((count) => count + 1);
+
+    try {
+      return await request();
+    } finally {
+      setPendingRequestCount((count) => Math.max(0, count - 1));
+    }
+  };
+
+  useEffect(() => {
+    if (resendCooldown <= 0) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setResendCooldown((current) => Math.max(0, current - 1));
+    }, 1000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [resendCooldown]);
+
+  useEffect(() => {
+    if (!auth?.token) {
+      return;
+    }
+
+    let ignore = false;
+
+    const loadProtectedData = async () => {
+      try {
+        const data = await runRequest(() => fetchWithToken<{ message?: string; total?: number; data?: unknown }>(
+          auth.role === "ADMIN" ? "/api/academies" : "/api/user/profile",
+          auth.token,
+          { method: "GET" },
+        ));
+
+        if (!ignore) {
+          setProtectedData(data);
+        }
+      } catch {
+        if (!ignore) {
+          setProtectedData({ message: "Protected session is active. Token-based request is ready." });
+        }
+      }
+    };
+
+    loadProtectedData();
+
+    return () => {
+      ignore = true;
+    };
+  }, [auth?.token, auth?.role]);
+
+  const persistAuth = (nextAuth: AuthState) => {
+    setAuth(nextAuth);
+    setStoredAuth(nextAuth);
+    setLoginForm({ identifier: nextAuth.email, password: loginForm.password });
+    setError("");
+    setSuccessMessage(`Welcome, ${nextAuth.name}. You are signed in successfully.`);
+  };
+
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const identifier = loginForm.identifier.trim();
+    const password = loginForm.password.trim();
+
+    if (!identifier || !password) {
+      setError("Phone or email and password are required to continue.");
+      return;
+    }
+
+    if (identifier.includes("@") ? !isValidEmail(identifier) : !isValidPhone(identifier)) {
+      setError("Enter a valid email address or phone number, including the country code.");
+      return;
+    }
+
+    try {
+      const isPhone = identifier.includes("@") === false;
+      const payload: Record<string, string | boolean> = isPhone
+        ? { phone: normalizePhone(identifier), password }
+        : { email: identifier.toLowerCase(), password };
+
+      const response = await runRequest(() => postAuthJson<AuthResponse>("/api/auth/login", payload));
+      const nextAuth = normalizeAuthResponse(response);
+      persistAuth(nextAuth);
+      navigate(
+        nextAuth.role === "ADMIN"
+          ? "/ridsmart-services-app/academy-coaching/admin"
+          : "/ridsmart-services-app/academy-coaching/user",
+        { replace: true },
+      );
+    } catch (loginError) {
+      const message = loginError instanceof ApiError && (loginError.status === 401 || loginError.status === 403)
+        ? "Invalid phone/email or password. Please try again."
+        : loginError instanceof Error ? loginError.message : "Login failed.";
+      setError(message || "Invalid credentials. Please try again.");
+    }
+  };
+
+  const handleSendOtp = async () => {
+    const fullName = registerForm.fullName.trim();
+    const phone = normalizePhone(`${registerForm.countryCode}${registerForm.phone}`);
+    const email = registerForm.email.trim().toLowerCase();
+    const password = registerForm.password.trim();
+
+    if (!fullName || !phone || !password) {
+      setError("Full name, phone and password are required before sending the OTP.");
+      return;
+    }
+
+    if (fullName.length < 2) {
+      setError("Please enter your full name using at least 2 characters.");
+      return;
+    }
+
+    if (!isValidPhone(phone)) {
+      setError("Enter a valid phone number. It must contain 7 to 15 digits.");
+      return;
+    }
+
+    if (email && !isValidEmail(email)) {
+      setError("Enter a valid email address or leave the email field empty.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Your password must contain at least 8 characters.");
+      return;
+    }
+
+    try {
+      setRegisterStatus("sending-otp");
+      setError("");
+      setSuccessMessage("");
+      await runRequest(() => sendVerificationCode(phone, "PHONE"));
+      setVerificationPhone(phone);
+      setVerificationCode("");
+      setPhoneVerified(false);
+      setRegisterStatus("otp-sent");
+      setSuccessMessage(`OTP sent successfully to ${phone}.`);
+      setRegisterStep("otp");
+      setResendCooldown(60);
+      setRegisterForm((current) => ({ ...current, email: email || current.email }));
+    } catch (sendError) {
+      const message = sendError instanceof Error ? sendError.message : "Unable to send verification code.";
+      setError(message || "Unable to send OTP right now. Please try again.");
+      setRegisterStatus("failed");
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    const trimmedCode = verificationCode.trim();
+
+    if (!verificationPhone) {
+      setError("No phone number is ready for verification.");
+      return;
+    }
+
+    if (trimmedCode.length !== 6) {
+      setError("Please enter the 6-digit OTP sent to your phone.");
+      return;
+    }
+
+    try {
+      setRegisterStatus("verifying-otp");
+      setError("");
+      setSuccessMessage("");
+      const verificationResponse = await runRequest(() => verifyCode(verificationPhone, trimmedCode, "PHONE"));
+      // The endpoint has already returned HTTP 2xx here. Some backend versions
+      // return only a message (rather than `success` / `verified`), so treat
+      // that successful response as verified unless it explicitly says false.
+      const success = verificationResponse.verified
+        ?? verificationResponse.success
+        ?? (verificationResponse.status?.toLowerCase() === "failed" ? false : true);
+
+      if (!success) {
+        throw new Error(verificationResponse.message || "The OTP is invalid or expired.");
+      }
+
+      setRegisterStatus("verified");
+      setPhoneVerified(true);
+      setSuccessMessage("Phone verification successful.");
+      setVerificationCode("");
+    } catch (verifyError) {
+      const message = verifyError instanceof Error ? verifyError.message : "Verification failed.";
+      setError(message || "Unable to verify OTP right now. Please try again.");
+      setRegisterStatus("failed");
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!verificationPhone || resendCooldown > 0) {
+      return;
+    }
+
+    try {
+      setError("");
+      setSuccessMessage("");
+      await runRequest(() => sendVerificationCode(verificationPhone, "PHONE"));
+      setVerificationCode("");
+      setPhoneVerified(false);
+      setResendCooldown(60);
+      setRegisterStatus("otp-sent");
+      setSuccessMessage(`A new OTP was sent successfully to ${verificationPhone}.`);
+    } catch (resendError) {
+      const message = resendError instanceof Error ? resendError.message : "Resend failed.";
+      setError(message || "The OTP could not be resent right now.");
+    }
+  };
+
+  const completeRegistration = async () => {
+    const fullName = registerForm.fullName.trim();
+    // Use the same international number that was verified before registering.
+    const phone = normalizePhone(`${registerForm.countryCode}${registerForm.phone}`);
+    const email = registerForm.email.trim().toLowerCase();
+    const password = registerForm.password.trim();
+
+    if (!fullName || !phone || !password) {
+      setError("Full name, phone and password are required to register.");
+      return;
+    }
+
+    if (fullName.length < 2 || !isValidPhone(phone) || (email && !isValidEmail(email)) || password.length < 8) {
+      setError("Your registration details are no longer valid. Please return to signup and correct them.");
+      return;
+    }
+
+    if (!phoneVerified) {
+      setError("Please verify your phone number before completing registration.");
+      return;
+    }
+
+    try {
+      setRegisterStatus("registering");
+      setError("");
+      setSuccessMessage("");
+
+      const registrationPayload = {
+        fullName,
+        phone,
+        email: email || "",
+        password,
+        phoneVerified: true,
+      };
+
+      const loginResponse = await runRequest(async () => {
+        await postAuthJson<{ message?: string }>("/api/auth/register", registrationPayload);
+        return postAuthJson<AuthResponse>("/api/auth/login", { phone, password });
+      });
+
+      const nextAuth = normalizeAuthResponse(loginResponse);
+      persistAuth(nextAuth);
+      setRegisterForm({
+        fullName: "",
+        countryCode: "+91",
+        phone: "",
+        email: "",
+        password: "",
+      });
+      setRegisterStep("phone");
+      setPhoneVerified(false);
+      setRegisterStatus("verified");
+      navigate(
+        nextAuth.role === "ADMIN"
+          ? "/ridsmart-services-app/academy-coaching/admin"
+          : "/ridsmart-services-app/academy-coaching/user",
+        { replace: true },
+      );
+    } catch (registerError) {
+      if (registerError instanceof ApiError && registerError.status === 409) {
+        setRegisterStatus("idle");
+        setPhoneVerified(false);
+        setRegisterStep("phone");
+        setAuthMode("login");
+        setLoginForm({ identifier: phone, password: "" });
+        setError("An account already exists with this phone number. Please log in to continue.");
+        return;
+      }
+
+      const message = registerError instanceof Error ? registerError.message : "Registration failed.";
+      setError(message || "Unable to complete registration. Please try again.");
+      setRegisterStatus("failed");
+    }
+  };
+
+  const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await completeRegistration();
+  };
+
+  const handleLogout = () => {
+    setAuth(null);
+    setStoredAuth(null);
+    setError("");
+    setSuccessMessage("You have been logged out successfully.");
+    navigate("/ridsmart-services-app/academy-coaching", { replace: true });
+  };
+
   if (service && activeService.slug !== "academy-coaching") {
     return (
       <div className="academy-auth-screen">
@@ -393,369 +769,75 @@ export function Applications() {
     );
   }
 
-  const [error, setError] = useState("");
-  const [auth, setAuth] = useState<AuthState | null>(() => getStoredAuth());
-  const [authMode, setAuthMode] = useState<"login" | "register">("login");
-  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
-  const [registerForm, setRegisterForm] = useState({ fullName: "", email: "", password: "" });
-  const [protectedData, setProtectedData] = useState<{ message?: string; total?: number; data?: unknown } | null>(null);
-
-  useEffect(() => {
-    if (!auth?.token) {
-      setProtectedData(null);
-      return;
-    }
-
-    let ignore = false;
-
-    const loadProtectedData = async () => {
-      try {
-        const data = await fetchWithToken<{ message?: string; total?: number; data?: unknown }>(
-          auth.role === "ADMIN" ? "/api/academies" : "/api/user/profile",
-          auth.token,
-          { method: "GET" },
-        );
-
-        if (!ignore) {
-          setProtectedData(data);
-        }
-      } catch {
-        if (!ignore) {
-          setProtectedData({ message: "Protected session is active. Token-based request is ready." });
-        }
-      }
-    };
-
-    loadProtectedData();
-
-    return () => {
-      ignore = true;
-    };
-  }, [auth?.token, auth?.role]);
-
-  const persistAuth = (nextAuth: AuthState) => {
-    setAuth(nextAuth);
-    setStoredAuth(nextAuth);
-    setLoginForm({ email: nextAuth.email, password: loginForm.password });
-    setError("");
-  };
-
-  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const email = loginForm.email.trim().toLowerCase();
-    const password = loginForm.password.trim();
-
-    if (!email || !password) {
-      setError("Email and password are required to continue.");
-      return;
-    }
-
-    try {
-      const response = await postAuthJson<AuthResponse>("/api/auth/login", {
-        email,
-        password,
-      });
-
-      const nextAuth = normalizeAuthResponse(response);
-      persistAuth(nextAuth);
-      navigate(
-        nextAuth.role === "ADMIN"
-          ? "/ridsmart-services-app/academy-coaching/admin"
-          : "/ridsmart-services-app/academy-coaching/user",
-        { replace: true },
-      );
-    } catch (loginError) {
-      const message = loginError instanceof Error ? loginError.message : "Login failed.";
-      setError(message || "Invalid email or password. Please try again.");
-    }
-  };
-
-  const handleRegister = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const fullName = registerForm.fullName.trim();
-    const email = registerForm.email.trim().toLowerCase();
-    const password = registerForm.password.trim();
-
-    if (!fullName || !email || !password) {
-      setError("Full name, email and password are required to create an account.");
-      return;
-    }
-
-    try {
-      const registrationResponse = await postAuthJson<{ message?: string; token?: string; role?: UserRole; fullName?: string; email?: string }>(
-        "/api/auth/register",
-        {
-          fullName,
-          email,
-          password,
-        },
-      );
-
-      if (registrationResponse.token && registrationResponse.role) {
-        const nextAuth = normalizeAuthResponse({
-          token: registrationResponse.token,
-          id: 0,
-          fullName: registrationResponse.fullName || fullName,
-          email: registrationResponse.email || email,
-          role: registrationResponse.role,
-          message: registrationResponse.message || "Registration successful",
-        });
-        persistAuth(nextAuth);
-        setRegisterForm({ fullName: "", email: "", password: "" });
-        navigate(
-          nextAuth.role === "ADMIN"
-            ? "/ridsmart-services-app/academy-coaching/admin"
-            : "/ridsmart-services-app/academy-coaching/user",
-          { replace: true },
-        );
-        return;
-      }
-
-      const response = await postAuthJson<AuthResponse>("/api/auth/login", {
-        email,
-        password,
-      });
-
-      const nextAuth = normalizeAuthResponse(response);
-      persistAuth(nextAuth);
-      setRegisterForm({ fullName: "", email: "", password: "" });
-      setAuthMode("login");
-      navigate(
-        nextAuth.role === "ADMIN"
-          ? "/ridsmart-services-app/academy-coaching/admin"
-          : "/ridsmart-services-app/academy-coaching/user",
-        { replace: true },
-      );
-    } catch (registerError) {
-      const message = registerError instanceof Error ? registerError.message : "Registration failed.";
-      setError(message || "Unable to create your account right now. Please try again.");
-    }
-  };
-
-  const displayedServiceName = service ? service.replace(/-/g, " ") : "academy coaching";
-
   if (!auth) {
+    if (registerStep === "otp") {
+      return (
+        <>
+          <AcademyRequestLoader isLoading={pendingRequestCount > 0} />
+          <AcademyOtpStep
+          error={error}
+          successMessage={successMessage}
+          handleCompleteRegistration={completeRegistration}
+          handleResendOtp={handleResendOtp}
+          handleVerifyOtp={handleVerifyOtp}
+          onBack={() => {
+            setRegisterStep("phone");
+            setVerificationPhone("");
+            setVerificationCode("");
+            setPhoneVerified(false);
+            setRegisterStatus("idle");
+            setError("");
+            setSuccessMessage("");
+          }}
+          registerStatus={registerStatus}
+          resendCooldown={resendCooldown}
+          isVerified={phoneVerified}
+          setVerificationCode={(value) => setVerificationCode(value)}
+          verificationCode={verificationCode}
+          verificationPhone={verificationPhone}
+          />
+        </>
+      );
+    }
+
     return (
-      <div className="academy-auth-screen">
-        <div className="academy-auth-card">
-          <div className="academy-auth-copy">
-            <p className="section-label">ACADEMY & COACHING</p>
-            <h1>Smart learning operations for institutions and learners.</h1>
-            <p>
-              Manage academies, coaching programs, and learner journeys from a single role-aware dashboard.
-            </p>
-          </div>
-
-          <div className="academy-login-form">
-            <div className="auth-mode-switcher" role="tablist" aria-label="Authentication mode selector">
-              <button
-                type="button"
-                className={authMode === "login" ? "active" : ""}
-                onClick={() => {
-                  setAuthMode("login");
-                  setError("");
-                }}
-              >
-                Login
-              </button>
-              <button
-                type="button"
-                className={authMode === "register" ? "active" : ""}
-                onClick={() => {
-                  setAuthMode("register");
-                  setError("");
-                }}
-              >
-                Register
-              </button>
-            </div>
-
-            {authMode === "login" ? (
-              <form onSubmit={handleLogin} className="academy-auth-form">
-                <div className="form-header">
-                  <h2>Welcome back</h2>
-                  <span>Sign in with your account</span>
-                </div>
-
-                <div className="academy-access-chip">
-                  <span className="academy-access-dot" aria-hidden="true" />
-                  Secure access portal
-                </div>
-
-                <label>
-                  <span>Email</span>
-                  <input
-                    type="email"
-                    value={loginForm.email}
-                    onChange={(event) => setLoginForm((current) => ({ ...current, email: event.target.value }))}
-                    placeholder="you@example.com"
-                  />
-                </label>
-
-                <label>
-                  <span>Password</span>
-                  <input
-                    type="password"
-                    value={loginForm.password}
-                    onChange={(event) => setLoginForm((current) => ({ ...current, password: event.target.value }))}
-                    placeholder="Enter password"
-                  />
-                </label>
-
-                {error && <div className="academy-app-alert">{error}</div>}
-
-                <button className="button button-sun" type="submit">
-                  Login
-                </button>
-
-                <div className="demo-credentials">
-                  <small>Role-based access</small>
-                  <span>Admin and User roles are returned by the backend login response.</span>
-                </div>
-              </form>
-            ) : (
-              <form onSubmit={handleRegister} className="academy-auth-form">
-                <div className="form-header">
-                  <h2>Create account</h2>
-                  <span>Register to continue</span>
-                </div>
-
-                <div className="academy-access-chip">
-                  <span className="academy-access-dot" aria-hidden="true" />
-                  New account setup
-                </div>
-
-                <label>
-                  <span>Full name</span>
-                  <input
-                    type="text"
-                    value={registerForm.fullName}
-                    onChange={(event) => setRegisterForm((current) => ({ ...current, fullName: event.target.value }))}
-                    placeholder="Priyanshu Yadav"
-                  />
-                </label>
-
-                <label>
-                  <span>Email</span>
-                  <input
-                    type="email"
-                    value={registerForm.email}
-                    onChange={(event) => setRegisterForm((current) => ({ ...current, email: event.target.value }))}
-                    placeholder="you@example.com"
-                  />
-                </label>
-
-                <label>
-                  <span>Password</span>
-                  <input
-                    type="password"
-                    value={registerForm.password}
-                    onChange={(event) => setRegisterForm((current) => ({ ...current, password: event.target.value }))}
-                    placeholder="Create a strong password"
-                  />
-                </label>
-
-                {error && <div className="academy-app-alert">{error}</div>}
-
-                <button className="button button-sun" type="submit">
-                  Register
-                </button>
-
-                <div className="demo-credentials">
-                  <small>Registration flow</small>
-                  <span>Your account is created and then signed in automatically.</span>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      </div>
+      <>
+        <AcademyRequestLoader isLoading={pendingRequestCount > 0} />
+        <AcademyAuthSection
+        authMode={authMode}
+        error={error}
+        successMessage={successMessage}
+        handleLogin={handleLogin}
+        handleRegister={handleRegister}
+        handleSendOtp={handleSendOtp}
+        loginForm={loginForm}
+        registerForm={registerForm}
+        registerStatus={registerStatus}
+        registerStep={registerStep}
+        setAuthMode={(mode) => {
+          setAuthMode(mode);
+          setError("");
+          if (mode === "register") {
+            setRegisterStep("phone");
+          }
+        }}
+        setLoginForm={setLoginForm}
+        setRegisterForm={setRegisterForm}
+        />
+      </>
     );
   }
 
   return (
-    <div className="academy-app-page">
-      <header className="academy-shell-header">
-        <div>
-          <p className="section-label">ACADEMY & COACHING</p>
-          <h1>{displayedServiceName}</h1>
-        </div>
-
-        {/* <div className="academy-header-actions">
-          <span className={`academy-role-badge ${auth.role.toLowerCase()}`}>
-            {auth.role}
-          </span>
-        </div> */}
-      </header>
-
-      {error && <div className="academy-app-alert">{error}</div>}
-
-      <div className="academy-token-card">
-        <div className="academy-card-header">
-          <div>
-            <p className="section-label">SYSTEM ADMIN</p>
-            <h2>{auth.name}</h2>
-          </div>
-          <span className={`academy-role-badge ${auth.role.toLowerCase()}`}>
-            {auth.role}
-          </span>
-        </div>
-
-        <div className="academy-token-copy">
-          <div className="academy-user-meta">
-            <strong>{auth.email}</strong>
-            {/* <span>Access level </span> */}
-          </div>
-          <div className="academy-access-pill">
-            <span className="academy-access-dot" aria-hidden="true" />
-            {auth.role === "ADMIN" ? "Full administrative access" : "Standard user access"}
-          </div>
-        </div>
-
-        <div className="academy-protected-status">
-          {/* <span>Protected fetch </span> */}
-          <strong>{protectedData?.message ?? "Token-based request is ready."}</strong>
-        </div>
-
-        <code>{auth.token}</code>
-      </div>
-    </div>
-  );
-}
-
-type ServiceCardContentProps = {
-  Icon: LucideIcon;
-  number: string;
-  title: string;
-  text: string;
-  detail: string;
-  live?: boolean;
-};
-
-function ServiceCardContent({
-  Icon,
-  number,
-  title,
-  text,
-  detail,
-  live = false,
-}: ServiceCardContentProps) {
-  return (
     <>
-      <div className="service-card-top">
-        <span>{number}</span>
-        <span className={`service-icon service-icon-${number}`}>
-          <Icon size={22} strokeWidth={1.8} />
-        </span>
-      </div>
-      <h3>{title}</h3>
-      <p>{text}</p>
-      <p className="service-detail">{detail}</p>
-      <span className="service-card-action">
-        {live ? "Open service app" : "Explore app experience"} <ArrowRight size={15} aria-hidden="true" />
-      </span>
+      <AcademyRequestLoader isLoading={pendingRequestCount > 0} />
+      <AcademyDashboard
+      auth={auth}
+      error={error}
+      onLogout={handleLogout}
+      protectedData={protectedData}
+      successMessage={successMessage}
+      />
     </>
   );
 }
