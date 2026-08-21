@@ -8,7 +8,7 @@ import {
   Truck,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import "../App.css";
 import type { Page } from "../type/Page";
@@ -31,7 +31,13 @@ type Service = {
   appUrl?: string;
 };
 
-type UserRole = "ADMIN" | "USER";
+export type UserRole = "SYSTEM_ADMIN" | "ADMIN" | "USER";
+
+const ROLE_ROUTE: Record<UserRole, string> = {
+  SYSTEM_ADMIN: "system-admin",
+  ADMIN: "admin",
+  USER: "user",
+};
 
 export type AuthState = {
   role: UserRole;
@@ -57,6 +63,27 @@ type VerificationCodeResponse = {
   verified?: boolean;
   status?: string;
   message?: string;
+};
+
+const toUserRole = (value: unknown): UserRole => {
+  const normalized = String(value ?? "")
+    .trim()
+    .toUpperCase()
+    .replace(/[\s-]+/g, "_");
+
+  if (
+    normalized === "SYSTEM_ADMIN" ||
+    normalized === "ROLE_SYSTEM_ADMIN" ||
+    normalized === "SUPER_ADMIN"
+  ) {
+    return "SYSTEM_ADMIN";
+  }
+
+  if (normalized === "ADMIN" || normalized === "ROLE_ADMIN") {
+    return "ADMIN";
+  }
+
+  return "USER";
 };
 
 class ApiError extends Error {
@@ -92,13 +119,25 @@ const getStoredAuth = (): AuthState | null => {
 
   try {
     const parsed = JSON.parse(raw) as Partial<AuthState>;
-    const role = parsed.role === "ADMIN" ? "ADMIN" : "USER";
+    const role = toUserRole(parsed.role);
 
     return {
       role,
-      token: parsed.token || (role === "ADMIN" ? "demo-admin-token" : "demo-user-token"),
+      token:
+        parsed.token ||
+        (role === "SYSTEM_ADMIN"
+          ? "demo-system-admin-token"
+          : role === "ADMIN"
+            ? "demo-admin-token"
+            : "demo-user-token"),
       email: parsed.email || `${role.toLowerCase()}@ridsmart.local`,
-      name: parsed.name || (role === "ADMIN" ? "Admin User" : "Learner User"),
+      name:
+        parsed.name ||
+        (role === "SYSTEM_ADMIN"
+          ? "System Administrator"
+          : role === "ADMIN"
+            ? "Academy Administrator"
+            : "Learner User"),
     };
   } catch {
     return null;
@@ -115,7 +154,12 @@ const setStoredAuth = (auth: AuthState | null) => {
 };
 
 const normalizeAuthResponse = (response: AuthResponse): AuthState => ({
-  role: response.role === "ADMIN" ? "ADMIN" : "USER",
+  // Some API versions send the authority in `type` (or prefix it with ROLE_).
+  // Prefer `role`, but use `type` when role is absent or only the default USER.
+  role:
+    toUserRole(response.role) !== "USER"
+      ? toUserRole(response.role)
+      : toUserRole(response.type),
   token: response.token,
   email: response.email,
   name: response.fullName || response.email,
@@ -126,11 +170,16 @@ const services: Service[] = [
     icon: GraduationCap,
     number: "01",
     title: "Academy & Coaching",
-    text: "Learning ecosystems that help institutions and individuals move forward with clarity.",
+    text: "A role-based portal for academies, coaching teams, and learners to manage learning in one place.",
     detail:
-      "We support schools, colleges and coaching centres with vocational training, skill development, digital learning pathways and career guidance designed around real learner needs.",
-    appSummary: "One place for learners, educators and institutions to manage every step of the learning journey.",
-    appFeatures: ["Discover courses and programmes", "Track enrolment and learner progress", "Access learning resources and support"],
+      "Use this card to sign in to the Academy & Coaching app. System Admins, Academy Admins, and learners each receive their own workspace.",
+    appSummary:
+      "One place for learners, educators and institutions to manage every step of the learning journey.",
+    appFeatures: [
+      "Discover courses and programmes",
+      "Track enrolment and learner progress",
+      "Access learning resources and support",
+    ],
     slug: "academy-coaching",
     appUrl: "/ridsmart-services-app/academy-coaching",
   },
@@ -138,41 +187,56 @@ const services: Service[] = [
     icon: Truck,
     number: "02",
     title: "Travels & Transport",
-    text: "Connected movement for people, goods and businesses across local and wider networks.",
+    text: "A future portal for planning journeys, requesting bookings, and tracking passenger or freight movement.",
     detail:
-      "From passenger fleet aggregation and travel operations to freight forwarding, cargo handling and booking support, our focus is on practical, coordinated movement.",
-    appSummary: "A simpler way to plan journeys, make bookings and stay informed while things are moving.",
-    appFeatures: ["Search routes and request bookings", "Get journey and shipment updates", "Manage travel support in one place"],
+      "This service page will help customers manage travel and transport requests from a single, connected workspace.",
+    appSummary:
+      "A simpler way to plan journeys, make bookings and stay informed while things are moving.",
+    appFeatures: [
+      "Search routes and request bookings",
+      "Get journey and shipment updates",
+      "Manage travel support in one place",
+    ],
     slug: "travels-transport",
-    appUrl: "/ridsmart-services-app/travels-transport",
   },
   {
     icon: HeartPulse,
     number: "03",
     title: "Healthcare",
-    text: "Patient-centred healthcare support enabled by dependable diagnostic and care networks.",
+    text: "A future care portal for appointments, diagnostic reports, and support from connected healthcare teams.",
     detail:
-      "Our healthcare framework covers hospitals, clinics, pathology, advanced radiology and telemedicine—helping make quality care pathways easier to coordinate.",
-    appSummary: "A connected care companion that helps patients access the right support with less friction.",
-    appFeatures: ["Book appointments and care services", "View diagnostic reports securely", "Connect with care teams remotely"],
+      "This service page will give patients and care teams a simpler way to access and coordinate healthcare services.",
+    appSummary:
+      "A connected care companion that helps patients access the right support with less friction.",
+    appFeatures: [
+      "Book appointments and care services",
+      "View diagnostic reports securely",
+      "Connect with care teams remotely",
+    ],
     slug: "healthcare",
-    appUrl: "/ridsmart-services-app/healthcare",
   },
   {
     icon: Settings,
     number: "04",
     title: "Facility Management & Utility Services",
-    text: "Practical on-ground support that keeps residential and commercial spaces running smoothly.",
+    text: "A future service desk for requesting, tracking, and reviewing essential maintenance work.",
     detail:
-      "We bring utility, maintenance and workforce services into a convenient support model, including electrical, plumbing, civil maintenance and housekeeping solutions.",
-    appSummary: "A straightforward service desk for homes and businesses to request, track and manage essential work.",
-    appFeatures: ["Raise a service request in minutes", "Track technician visits and updates", "Keep service history in one place"],
+      "This service page will help homes and businesses manage utility, maintenance, and workforce support in one place.",
+    appSummary:
+      "A straightforward service desk for homes and businesses to request, track and manage essential work.",
+    appFeatures: [
+      "Raise a service request in minutes",
+      "Track technician visits and updates",
+      "Keep service history in one place",
+    ],
     slug: "facility-management-utility-services",
-    appUrl: "/ridsmart-services-app/facility-management-utility-services",
   },
 ];
 
-async function postAuthJson<T>(path: string, body: Record<string, string | boolean>): Promise<T> {
+async function postAuthJson<T>(
+  path: string,
+  body: Record<string, string | boolean>,
+): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: "POST",
     headers: {
@@ -198,7 +262,11 @@ async function postAuthJson<T>(path: string, body: Record<string, string | boole
   return (await response.json()) as T;
 }
 
-async function fetchWithToken<T>(path: string, token: string, options: RequestInit = {}): Promise<T> {
+async function fetchWithToken<T>(
+  path: string,
+  token: string,
+  options: RequestInit = {},
+): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers: {
@@ -220,28 +288,39 @@ async function fetchWithToken<T>(path: string, token: string, options: RequestIn
   return (await response.json()) as T;
 }
 
-async function sendVerificationCode(target: string, verificationType: VerificationType = "PHONE"): Promise<void> {
-  const payload: Record<string, string | boolean> = verificationType === "PHONE"
-    ? { phone: normalizePhone(target), verificationType }
-    : { email: target.trim().toLowerCase(), verificationType };
+async function sendVerificationCode(
+  target: string,
+  verificationType: VerificationType = "PHONE",
+): Promise<void> {
+  const payload: Record<string, string | boolean> =
+    verificationType === "PHONE"
+      ? { phone: normalizePhone(target), verificationType }
+      : { email: target.trim().toLowerCase(), verificationType };
 
   await postAuthJson<{ message?: string }>("/api/auth/send-code", payload);
 }
 
-async function verifyCode(target: string, code: string, verificationType: VerificationType = "PHONE"): Promise<VerificationCodeResponse> {
-  const payload: Record<string, string | boolean> = verificationType === "PHONE"
-    ? { phone: normalizePhone(target), code }
-    : { email: target.trim().toLowerCase(), code };
+async function verifyCode(
+  target: string,
+  code: string,
+  verificationType: VerificationType = "PHONE",
+): Promise<VerificationCodeResponse> {
+  const payload: Record<string, string | boolean> =
+    verificationType === "PHONE"
+      ? { phone: normalizePhone(target), code }
+      : { email: target.trim().toLowerCase(), code };
 
-  return postAuthJson<VerificationCodeResponse>("/api/auth/verify-code", payload);
+  return postAuthJson<VerificationCodeResponse>(
+    "/api/auth/verify-code",
+    payload,
+  );
 }
 
 function Verticals({ go }: { go: (page: Page) => () => void }) {
-  const navigate = useNavigate();
-  const [selectedServiceNumber, setSelectedServiceNumber] = useState(services[0].number);
   // const [isAppShowcaseHighlighted, setIsAppShowcaseHighlighted] = useState(false);
-  const [appWindowState, setAppWindowState] = useState<"normal" | "minimized" | "maximized">("normal");
-  const appShowcaseRef = useRef<HTMLElement>(null);
+  const [appWindowState, setAppWindowState] = useState<
+    "normal" | "minimized" | "maximized"
+  >("normal");
   // const appWindowRef = useRef<HTMLDivElement>(null);
   // const selectedService = services.find(({ number }) => number === selectedServiceNumber) ?? services[0];
   // const SelectedIcon = selectedService.icon;
@@ -264,17 +343,6 @@ function Verticals({ go }: { go: (page: Page) => () => void }) {
     pageStage?.classList.add("app-window-open");
     return () => pageStage?.classList.remove("app-window-open");
   }, [appWindowState]);
-
-  const showAppExperience = (serviceNumber: string) => () => {
-    setSelectedServiceNumber(serviceNumber);
-    const targetService = services.find(({ number }) => number === serviceNumber) ?? services[0];
-    if (targetService.appUrl) {
-      navigate(targetService.appUrl);
-    }
-    // setIsAppShowcaseHighlighted(false);
-    // window.requestAnimationFrame(() => setIsAppShowcaseHighlighted(true));
-    appShowcaseRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  };
 
   // const toggleAppWindowSize = () => {
   //   if (appWindowState === "maximized") {
@@ -299,11 +367,13 @@ function Verticals({ go }: { go: (page: Page) => () => void }) {
       <div className="service-app-intro">
         <div>
           <p className="section-label">THE RIDSMART SERVICES APP</p>
-          <h2 id="app-experience-title">One service journey, <em>made simpler.</em></h2>
+          <h2 id="app-experience-title">
+            One service journey, <em>made simpler.</em>
+          </h2>
         </div>
         <p>
-          Each Ridsmart Services app will give customers a clearer way to access support,
-          follow progress and stay connected to their service.
+          Each Ridsmart Services app will give customers a clearer way to access
+          support, follow progress and stay connected to their service.
         </p>
       </div>
       <p className="verticals-intro">
@@ -315,17 +385,35 @@ function Verticals({ go }: { go: (page: Page) => () => void }) {
       <div className="service-list">
         {services.map(({ icon: Icon, number, title, text, detail, appUrl }) => (
           <article
-            className={`service-card${selectedServiceNumber === number ? " is-selected" : ""}`}
+            className="service-card"
             key={title}
           >
             {appUrl ? (
-              <Link className="service-card-link" to={appUrl} aria-label={`Open ${title} application`}>
-                <ServiceCardContent Icon={Icon} number={number} title={title} text={text} detail={detail} live />
+              <Link
+                className="service-card-link"
+                to={appUrl}
+                aria-label={`Open ${title} application`}
+              >
+                <ServiceCardContent
+                  Icon={Icon}
+                  number={number}
+                  title={title}
+                  text={text}
+                  detail={detail}
+                  live
+                />
               </Link>
             ) : (
-              <button className="service-card-link" type="button" onClick={showAppExperience(number)}>
-                <ServiceCardContent Icon={Icon} number={number} title={title} text={text} detail={detail} />
-              </button>
+              <div className="service-card-link service-card-coming-soon">
+                <ServiceCardContent
+                  Icon={Icon}
+                  number={number}
+                  title={title}
+                  text={text}
+                  detail={detail}
+                  live={false}
+                />
+              </div>
             )}
           </article>
         ))}
@@ -402,12 +490,18 @@ function Verticals({ go }: { go: (page: Page) => () => void }) {
           )}
         </div>
       </section> */}
-      <section className="service-team-cta" aria-labelledby="service-team-cta-title">
+      <section
+        className="service-team-cta"
+        aria-labelledby="service-team-cta-title"
+      >
         <div>
           <p className="section-label">LET’S BUILD WHAT’S NEXT</p>
-          <h2 id="service-team-cta-title">Looking for the right <em>service partner?</em></h2>
+          <h2 id="service-team-cta-title">
+            Looking for the right <em>service partner?</em>
+          </h2>
           <p>
-            Tell us what you need and our team will help shape the most practical next step.
+            Tell us what you need and our team will help shape the most
+            practical next step.
           </p>
         </div>
         <button className="button button-sun" onClick={go("contact")}>
@@ -420,8 +514,9 @@ function Verticals({ go }: { go: (page: Page) => () => void }) {
 
 export function Applications() {
   const navigate = useNavigate();
-  const { service } = useParams();
-  const activeService = services.find((item) => item.slug === service) ?? services[0];
+  const { service, role: requestedRole } = useParams();
+  const activeService =
+    services.find((item) => item.slug === service) ?? services[0];
 
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -429,14 +524,34 @@ export function Applications() {
   const [auth, setAuth] = useState<AuthState | null>(() => getStoredAuth());
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [loginForm, setLoginForm] = useState({ identifier: "", password: "" });
-  const [registerForm, setRegisterForm] = useState({ fullName: "",countryCode: "+91", phone: "", email: "", password: "" });
-  const [protectedData, setProtectedData] = useState<{ message?: string; total?: number; data?: unknown } | null>(null);
-  const [registerStep, setRegisterStep] = useState<"phone" | "otp" | "verified">("phone");
+  const [registerForm, setRegisterForm] = useState({
+    fullName: "",
+    countryCode: "+91",
+    phone: "",
+    email: "",
+    password: "",
+  });
+  const [protectedData, setProtectedData] = useState<{
+    message?: string;
+    total?: number;
+    data?: unknown;
+  } | null>(null);
+  const [registerStep, setRegisterStep] = useState<
+    "phone" | "otp" | "verified"
+  >("phone");
   const [verificationPhone, setVerificationPhone] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
-  const [registerStatus, setRegisterStatus] = useState<"idle" | "sending-otp" | "otp-sent" | "verifying-otp" | "verified" | "registering" | "failed">("idle");
+  const [registerStatus, setRegisterStatus] = useState<
+    | "idle"
+    | "sending-otp"
+    | "otp-sent"
+    | "verifying-otp"
+    | "verified"
+    | "registering"
+    | "failed"
+  >("idle");
 
   const runRequest = async <T,>(request: () => Promise<T>): Promise<T> => {
     setPendingRequestCount((count) => count + 1);
@@ -469,18 +584,23 @@ export function Applications() {
 
     const loadProtectedData = async () => {
       try {
-        const data = await runRequest(() => fetchWithToken<{ message?: string; total?: number; data?: unknown }>(
-          auth.role === "ADMIN" ? "/api/academies" : "/api/user/profile",
-          auth.token,
-          { method: "GET" },
-        ));
+        const data = await runRequest(() =>
+          fetchWithToken<{ message?: string; total?: number; data?: unknown }>(
+            auth.role === "USER" ? "/api/user/profile" : "/api/academies",
+            auth.token,
+            { method: "GET" },
+          ),
+        );
 
         if (!ignore) {
           setProtectedData(data);
         }
       } catch {
         if (!ignore) {
-          setProtectedData({ message: "Protected session is active. Token-based request is ready." });
+          setProtectedData({
+            message:
+              "Protected session is active. Token-based request is ready.",
+          });
         }
       }
     };
@@ -492,12 +612,28 @@ export function Applications() {
     };
   }, [auth?.token, auth?.role]);
 
+  useEffect(() => {
+    if (!auth || activeService.slug !== "academy-coaching") {
+      return;
+    }
+
+    const expectedRoleRoute = ROLE_ROUTE[auth.role];
+    if (requestedRole !== expectedRoleRoute) {
+      navigate(
+        `/ridsmart-services-app/academy-coaching/${expectedRoleRoute}`,
+        { replace: true },
+      );
+    }
+  }, [activeService.slug, auth, navigate, requestedRole]);
+
   const persistAuth = (nextAuth: AuthState) => {
     setAuth(nextAuth);
     setStoredAuth(nextAuth);
     setLoginForm({ identifier: nextAuth.email, password: loginForm.password });
     setError("");
-    setSuccessMessage(`Welcome, ${nextAuth.name}. You are signed in successfully.`);
+    setSuccessMessage(
+      `Welcome, ${nextAuth.name}. You are signed in successfully.`,
+    );
   };
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -511,8 +647,14 @@ export function Applications() {
       return;
     }
 
-    if (identifier.includes("@") ? !isValidEmail(identifier) : !isValidPhone(identifier)) {
-      setError("Enter a valid email address or phone number, including the country code.");
+    if (
+      identifier.includes("@")
+        ? !isValidEmail(identifier)
+        : !isValidPhone(identifier)
+    ) {
+      setError(
+        "Enter a valid email address or phone number, including the country code.",
+      );
       return;
     }
 
@@ -522,31 +664,39 @@ export function Applications() {
         ? { phone: normalizePhone(identifier), password }
         : { email: identifier.toLowerCase(), password };
 
-      const response = await runRequest(() => postAuthJson<AuthResponse>("/api/auth/login", payload));
+      const response = await runRequest(() =>
+        postAuthJson<AuthResponse>("/api/auth/login", payload),
+      );
       const nextAuth = normalizeAuthResponse(response);
       persistAuth(nextAuth);
       navigate(
-        nextAuth.role === "ADMIN"
-          ? "/ridsmart-services-app/academy-coaching/admin"
-          : "/ridsmart-services-app/academy-coaching/user",
+        `/ridsmart-services-app/academy-coaching/${ROLE_ROUTE[nextAuth.role]}`,
         { replace: true },
       );
     } catch (loginError) {
-      const message = loginError instanceof ApiError && (loginError.status === 401 || loginError.status === 403)
-        ? "Invalid phone/email or password. Please try again."
-        : loginError instanceof Error ? loginError.message : "Login failed.";
+      const message =
+        loginError instanceof ApiError &&
+        (loginError.status === 401 || loginError.status === 403)
+          ? "Invalid phone/email or password. Please try again."
+          : loginError instanceof Error
+            ? loginError.message
+            : "Login failed.";
       setError(message || "Invalid credentials. Please try again.");
     }
   };
 
   const handleSendOtp = async () => {
     const fullName = registerForm.fullName.trim();
-    const phone = normalizePhone(`${registerForm.countryCode}${registerForm.phone}`);
+    const phone = normalizePhone(
+      `${registerForm.countryCode}${registerForm.phone}`,
+    );
     const email = registerForm.email.trim().toLowerCase();
     const password = registerForm.password.trim();
 
     if (!fullName || !phone || !password) {
-      setError("Full name, phone and password are required before sending the OTP.");
+      setError(
+        "Full name, phone and password are required before sending the OTP.",
+      );
       return;
     }
 
@@ -582,9 +732,15 @@ export function Applications() {
       setSuccessMessage(`OTP sent successfully to ${phone}.`);
       setRegisterStep("otp");
       setResendCooldown(60);
-      setRegisterForm((current) => ({ ...current, email: email || current.email }));
+      setRegisterForm((current) => ({
+        ...current,
+        email: email || current.email,
+      }));
     } catch (sendError) {
-      const message = sendError instanceof Error ? sendError.message : "Unable to send verification code.";
+      const message =
+        sendError instanceof Error
+          ? sendError.message
+          : "Unable to send verification code.";
       setError(message || "Unable to send OTP right now. Please try again.");
       setRegisterStatus("failed");
     }
@@ -607,16 +763,23 @@ export function Applications() {
       setRegisterStatus("verifying-otp");
       setError("");
       setSuccessMessage("");
-      const verificationResponse = await runRequest(() => verifyCode(verificationPhone, trimmedCode, "PHONE"));
+      const verificationResponse = await runRequest(() =>
+        verifyCode(verificationPhone, trimmedCode, "PHONE"),
+      );
       // The endpoint has already returned HTTP 2xx here. Some backend versions
       // return only a message (rather than `success` / `verified`), so treat
       // that successful response as verified unless it explicitly says false.
-      const success = verificationResponse.verified
-        ?? verificationResponse.success
-        ?? (verificationResponse.status?.toLowerCase() === "failed" ? false : true);
+      const success =
+        verificationResponse.verified ??
+        verificationResponse.success ??
+        (verificationResponse.status?.toLowerCase() === "failed"
+          ? false
+          : true);
 
       if (!success) {
-        throw new Error(verificationResponse.message || "The OTP is invalid or expired.");
+        throw new Error(
+          verificationResponse.message || "The OTP is invalid or expired.",
+        );
       }
 
       setRegisterStatus("verified");
@@ -624,7 +787,10 @@ export function Applications() {
       setSuccessMessage("Phone verification successful.");
       setVerificationCode("");
     } catch (verifyError) {
-      const message = verifyError instanceof Error ? verifyError.message : "Verification failed.";
+      const message =
+        verifyError instanceof Error
+          ? verifyError.message
+          : "Verification failed.";
       setError(message || "Unable to verify OTP right now. Please try again.");
       setRegisterStatus("failed");
     }
@@ -643,9 +809,12 @@ export function Applications() {
       setPhoneVerified(false);
       setResendCooldown(60);
       setRegisterStatus("otp-sent");
-      setSuccessMessage(`A new OTP was sent successfully to ${verificationPhone}.`);
+      setSuccessMessage(
+        `A new OTP was sent successfully to ${verificationPhone}.`,
+      );
     } catch (resendError) {
-      const message = resendError instanceof Error ? resendError.message : "Resend failed.";
+      const message =
+        resendError instanceof Error ? resendError.message : "Resend failed.";
       setError(message || "The OTP could not be resent right now.");
     }
   };
@@ -653,7 +822,9 @@ export function Applications() {
   const completeRegistration = async () => {
     const fullName = registerForm.fullName.trim();
     // Use the same international number that was verified before registering.
-    const phone = normalizePhone(`${registerForm.countryCode}${registerForm.phone}`);
+    const phone = normalizePhone(
+      `${registerForm.countryCode}${registerForm.phone}`,
+    );
     const email = registerForm.email.trim().toLowerCase();
     const password = registerForm.password.trim();
 
@@ -662,13 +833,22 @@ export function Applications() {
       return;
     }
 
-    if (fullName.length < 2 || !isValidPhone(phone) || (email && !isValidEmail(email)) || password.length < 8) {
-      setError("Your registration details are no longer valid. Please return to signup and correct them.");
+    if (
+      fullName.length < 2 ||
+      !isValidPhone(phone) ||
+      (email && !isValidEmail(email)) ||
+      password.length < 8
+    ) {
+      setError(
+        "Your registration details are no longer valid. Please return to signup and correct them.",
+      );
       return;
     }
 
     if (!phoneVerified) {
-      setError("Please verify your phone number before completing registration.");
+      setError(
+        "Please verify your phone number before completing registration.",
+      );
       return;
     }
 
@@ -686,8 +866,14 @@ export function Applications() {
       };
 
       const loginResponse = await runRequest(async () => {
-        await postAuthJson<{ message?: string }>("/api/auth/register", registrationPayload);
-        return postAuthJson<AuthResponse>("/api/auth/login", { phone, password });
+        await postAuthJson<{ message?: string }>(
+          "/api/auth/register",
+          registrationPayload,
+        );
+        return postAuthJson<AuthResponse>("/api/auth/login", {
+          phone,
+          password,
+        });
       });
 
       const nextAuth = normalizeAuthResponse(loginResponse);
@@ -703,9 +889,7 @@ export function Applications() {
       setPhoneVerified(false);
       setRegisterStatus("verified");
       navigate(
-        nextAuth.role === "ADMIN"
-          ? "/ridsmart-services-app/academy-coaching/admin"
-          : "/ridsmart-services-app/academy-coaching/user",
+        `/ridsmart-services-app/academy-coaching/${ROLE_ROUTE[nextAuth.role]}`,
         { replace: true },
       );
     } catch (registerError) {
@@ -715,11 +899,16 @@ export function Applications() {
         setRegisterStep("phone");
         setAuthMode("login");
         setLoginForm({ identifier: phone, password: "" });
-        setError("An account already exists with this phone number. Please log in to continue.");
+        setError(
+          "An account already exists with this phone number. Please log in to continue.",
+        );
         return;
       }
 
-      const message = registerError instanceof Error ? registerError.message : "Registration failed.";
+      const message =
+        registerError instanceof Error
+          ? registerError.message
+          : "Registration failed.";
       setError(message || "Unable to complete registration. Please try again.");
       setRegisterStatus("failed");
     }
@@ -743,7 +932,9 @@ export function Applications() {
       <div className="academy-auth-screen">
         <div className="academy-auth-card">
           <div className="academy-auth-copy">
-            <p className="section-label">{activeService.number} / SERVICE ROUTE</p>
+            <p className="section-label">
+              {activeService.number} / SERVICE ROUTE
+            </p>
             <h1>{activeService.title}</h1>
             <p>{activeService.appSummary}</p>
           </div>
@@ -751,10 +942,20 @@ export function Applications() {
           <div className="academy-login-form" style={{ gap: "1rem" }}>
             <div className="form-header">
               <h2>Service app coming soon</h2>
-              <span>{activeService.title} is routed and ready for its dedicated experience.</span>
+              <span>
+                {activeService.title} is routed and ready for its dedicated
+                experience.
+              </span>
             </div>
 
-            <ul style={{ margin: 0, paddingLeft: "1.1rem", color: "#dfe7f5", lineHeight: 1.8 }}>
+            <ul
+              style={{
+                margin: 0,
+                paddingLeft: "1.1rem",
+                color: "#dfe7f5",
+                lineHeight: 1.8,
+              }}
+            >
               {activeService.appFeatures.map((feature) => (
                 <li key={feature}>{feature}</li>
               ))}
@@ -775,26 +976,26 @@ export function Applications() {
         <>
           <AcademyRequestLoader isLoading={pendingRequestCount > 0} />
           <AcademyOtpStep
-          error={error}
-          successMessage={successMessage}
-          handleCompleteRegistration={completeRegistration}
-          handleResendOtp={handleResendOtp}
-          handleVerifyOtp={handleVerifyOtp}
-          onBack={() => {
-            setRegisterStep("phone");
-            setVerificationPhone("");
-            setVerificationCode("");
-            setPhoneVerified(false);
-            setRegisterStatus("idle");
-            setError("");
-            setSuccessMessage("");
-          }}
-          registerStatus={registerStatus}
-          resendCooldown={resendCooldown}
-          isVerified={phoneVerified}
-          setVerificationCode={(value) => setVerificationCode(value)}
-          verificationCode={verificationCode}
-          verificationPhone={verificationPhone}
+            error={error}
+            successMessage={successMessage}
+            handleCompleteRegistration={completeRegistration}
+            handleResendOtp={handleResendOtp}
+            handleVerifyOtp={handleVerifyOtp}
+            onBack={() => {
+              setRegisterStep("phone");
+              setVerificationPhone("");
+              setVerificationCode("");
+              setPhoneVerified(false);
+              setRegisterStatus("idle");
+              setError("");
+              setSuccessMessage("");
+            }}
+            registerStatus={registerStatus}
+            resendCooldown={resendCooldown}
+            isVerified={phoneVerified}
+            setVerificationCode={(value) => setVerificationCode(value)}
+            verificationCode={verificationCode}
+            verificationPhone={verificationPhone}
           />
         </>
       );
@@ -804,25 +1005,25 @@ export function Applications() {
       <>
         <AcademyRequestLoader isLoading={pendingRequestCount > 0} />
         <AcademyAuthSection
-        authMode={authMode}
-        error={error}
-        successMessage={successMessage}
-        handleLogin={handleLogin}
-        handleRegister={handleRegister}
-        handleSendOtp={handleSendOtp}
-        loginForm={loginForm}
-        registerForm={registerForm}
-        registerStatus={registerStatus}
-        registerStep={registerStep}
-        setAuthMode={(mode) => {
-          setAuthMode(mode);
-          setError("");
-          if (mode === "register") {
-            setRegisterStep("phone");
-          }
-        }}
-        setLoginForm={setLoginForm}
-        setRegisterForm={setRegisterForm}
+          authMode={authMode}
+          error={error}
+          successMessage={successMessage}
+          handleLogin={handleLogin}
+          handleRegister={handleRegister}
+          handleSendOtp={handleSendOtp}
+          loginForm={loginForm}
+          registerForm={registerForm}
+          registerStatus={registerStatus}
+          registerStep={registerStep}
+          setAuthMode={(mode) => {
+            setAuthMode(mode);
+            setError("");
+            if (mode === "register") {
+              setRegisterStep("phone");
+            }
+          }}
+          setLoginForm={setLoginForm}
+          setRegisterForm={setRegisterForm}
         />
       </>
     );
@@ -832,11 +1033,11 @@ export function Applications() {
     <>
       <AcademyRequestLoader isLoading={pendingRequestCount > 0} />
       <AcademyDashboard
-      auth={auth}
-      error={error}
-      onLogout={handleLogout}
-      protectedData={protectedData}
-      successMessage={successMessage}
+        auth={auth}
+        error={error}
+        onLogout={handleLogout}
+        protectedData={protectedData}
+        successMessage={successMessage}
       />
     </>
   );

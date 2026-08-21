@@ -1,6 +1,28 @@
 import "../App.css";
+import { LogOut } from "lucide-react";
 import type { AuthState } from "./Verticals";
 import { AcademyFeedback } from "./AcademyFeedback";
+
+const ROLE_DETAILS = {
+  SYSTEM_ADMIN: {
+    label: "SYSTEM ADMINISTRATION",
+    access: "Full platform access",
+    description: "Manage every academy, administrator, learner, and platform setting.",
+    permissions: ["All academies and users", "Administrator access", "Platform configuration"],
+  },
+  ADMIN: {
+    label: "ACADEMY ADMINISTRATION",
+    access: "Academy management access",
+    description: "Manage the academy's learners, courses, enrolments, and day-to-day operations.",
+    permissions: ["Academy learners", "Courses and enrolments", "Academy reports"],
+  },
+  USER: {
+    label: "LEARNER PORTAL",
+    access: "Learner access",
+    description: "Access your courses, learning resources, enrolments, and personal profile.",
+    permissions: ["My courses", "Learning resources", "My profile"],
+  },
+} as const;
 
 type ProtectedData = {
   message?: string;
@@ -17,21 +39,13 @@ type AcademyDashboardProps = {
 };
 
 export function AcademyDashboard({ auth, protectedData, error, successMessage, onLogout }: AcademyDashboardProps) {
+  const roleDetails = ROLE_DETAILS[auth.role];
+
   return (
     <div className="academy-app-page">
       <header className="academy-shell-header">
         <div>
           <p className="section-label">ACADEMY & COACHING</p>
-          <h1>{auth.name}</h1>
-        </div>
-
-        <div className="academy-header-actions">
-          <span className={`academy-role-badge ${auth.role.toLowerCase()}`}>
-            {auth.role}
-          </span>
-          <button type="button" className="button button-secondary" onClick={onLogout}>
-            Logout
-          </button>
         </div>
       </header>
 
@@ -41,7 +55,7 @@ export function AcademyDashboard({ auth, protectedData, error, successMessage, o
       <div className="academy-token-card">
         <div className="academy-card-header">
           <div>
-            <p className="section-label">SYSTEM ADMIN</p>
+            <p className="section-label">{roleDetails.label}</p>
             <h2>{auth.name}</h2>
           </div>
           <span className={`academy-role-badge ${auth.role.toLowerCase()}`}>
@@ -55,15 +69,26 @@ export function AcademyDashboard({ auth, protectedData, error, successMessage, o
           </div>
           <div className="academy-access-pill">
             <span className="academy-access-dot" aria-hidden="true" />
-            {auth.role === "ADMIN" ? "Full administrative access" : "Standard user access"}
+            {roleDetails.access}
           </div>
+        </div>
+
+        <p className="academy-role-description">{roleDetails.description}</p>
+
+        <div className="academy-permission-list" aria-label="Available access">
+          {roleDetails.permissions.map((permission) => (
+            <span key={permission}>{permission}</span>
+          ))}
         </div>
 
         <div className="academy-protected-status">
           <strong>{protectedData?.message ?? "Token-based request is ready."}</strong>
         </div>
 
-        <code>{auth.token}</code>
+        <button className="button button-secondary academy-logout-button" onClick={onLogout} type="button">
+          <LogOut size={15} aria-hidden="true" />
+          Logout
+        </button>
       </div>
     </div>
   );

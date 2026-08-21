@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronUp,
   Languages,
+  LogOut,
   Menu,
   Moon,
   Sparkles,
@@ -118,6 +119,9 @@ function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const page = pathPages[location.pathname] ?? "home";
+  const isServiceAppRoute =
+    location.pathname.startsWith("/ridsmart-services-app") ||
+    location.pathname.startsWith("/applications");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [footerOpen, setFooterOpen] = useState(false);
   const [translatorReady, setTranslatorReady] = useState(false);
@@ -138,8 +142,19 @@ function AppLayout() {
     try {
       const parsed = JSON.parse(raw) as { role?: string; email?: string; name?: string };
       if (!parsed.email && !parsed.name && !parsed.role) return null;
+      const savedRole = String(parsed.role ?? "")
+        .trim()
+        .toUpperCase()
+        .replace(/[\s-]+/g, "_");
       return {
-        role: parsed.role === "ADMIN" ? "ADMIN" : "USER",
+        role:
+          savedRole === "SYSTEM_ADMIN" ||
+          savedRole === "ROLE_SYSTEM_ADMIN" ||
+          savedRole === "SUPER_ADMIN"
+            ? "SYSTEM_ADMIN"
+            : savedRole === "ADMIN" || savedRole === "ROLE_ADMIN"
+              ? "ADMIN"
+              : "USER",
         email: parsed.email || "",
         name: parsed.name || "User",
       };
@@ -154,14 +169,6 @@ function AppLayout() {
     }
     navigate(pagePaths[next]);
     setMobileOpen(false);
-  };
-  const handleContactClick = () => {
-    if (page === "contact") {
-      setShowContactToast(true);
-      return;
-    }
-
-    go("contact")();
   };
   const closeWelcomePrompt = () => {
     sessionStorage.setItem("alevgroupss-welcome-seen", "true");
@@ -329,7 +336,11 @@ function AppLayout() {
               key={id}
               to={pagePaths[id]}
               end={id === "home"}
-              className={({ isActive }) => (isActive ? "active" : "")}
+              className={({ isActive }) =>
+                isActive || (id === "verticals" && isServiceAppRoute)
+                  ? "active"
+                  : ""
+              }
               onClick={() => setMobileOpen(false)}
             >
               {label}
@@ -393,15 +404,16 @@ function AppLayout() {
           </button>
           {sessionAuth ? (
             <button className="header-logout" type="button" onClick={handleLogout}>
-              Logout
+              <LogOut size={15} aria-hidden="true" />
+              <span>Logout</span>
             </button>
           ) : (
             <button
               className="header-cta"
-              onClick={handleContactClick}
-              aria-label="Contact us"
+              onClick={() => navigate("/services")}
+              aria-label="Choose a service to log in"
             >
-              Connect with us <ArrowRight size={15} />
+              Login <ArrowRight size={15} />
             </button>
           )}
           <button

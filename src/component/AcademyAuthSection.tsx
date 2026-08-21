@@ -205,8 +205,8 @@ export function AcademyAuthSection({
                 <small>Role-based access</small>
 
                 <span>
-                  Admin and User roles are returned by the backend
-                  login response.
+                  System Admin, Admin, and User access is assigned securely by
+                  the backend login response.
                 </span>
               </div>
             </form>
