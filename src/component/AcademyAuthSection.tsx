@@ -127,10 +127,6 @@ export function AcademyAuthSection({
               onSubmit={handleLogin}
               className="academy-auth-form"
             >
-              <div className="form-header">
-                <h2>Welcome back</h2>
-                <span>Sign in with your account</span>
-              </div>
 
               <div className="academy-access-chip">
                 <span
@@ -216,19 +212,6 @@ export function AcademyAuthSection({
               onSubmit={handleRegister}
               className="academy-auth-form"
             >
-              <div className="form-header">
-                <h2>
-                  {registerStep === "verified"
-                    ? "Complete registration"
-                    : "Create account"}
-                </h2>
-
-                <span>
-                  {registerStep === "verified"
-                    ? "Verify complete"
-                    : "Phone verification first"}
-                </span>
-              </div>
 
               <div className="academy-access-chip">
                 <span
