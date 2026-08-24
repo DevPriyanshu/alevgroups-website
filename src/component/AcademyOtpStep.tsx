@@ -36,7 +36,7 @@ export function AcademyOtpStep({
       <div className="academy-auth-card">
         <div className="academy-auth-copy">
           <p className="section-label">{isVerified ? "VERIFICATION COMPLETE" : "VERIFICATION REQUIRED"}</p>
-          <h1>{isVerified ? "Your phone number is verified." : "Enter the code sent to your phone."}</h1>
+          <h1>{isVerified ? "Your phone number is verified ." : "Enter the code sent to your phone."}</h1>
           <p>
             {isVerified
               ? <>Phone verification was successful for <strong>{verificationPhone}</strong>. Select OK to create your account.</>
