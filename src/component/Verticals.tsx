@@ -321,9 +321,6 @@ function Verticals({ go }: { go: (page: Page) => () => void }) {
   const [appWindowState, setAppWindowState] = useState<
     "normal" | "minimized" | "maximized"
   >("normal");
-  // const appWindowRef = useRef<HTMLDivElement>(null);
-  // const selectedService = services.find(({ number }) => number === selectedServiceNumber) ?? services[0];
-  // const SelectedIcon = selectedService.icon;
 
   useEffect(() => {
     if (appWindowState !== "maximized") return;
@@ -344,14 +341,6 @@ function Verticals({ go }: { go: (page: Page) => () => void }) {
     return () => pageStage?.classList.remove("app-window-open");
   }, [appWindowState]);
 
-  // const toggleAppWindowSize = () => {
-  //   if (appWindowState === "maximized") {
-  //     setAppWindowState("normal");
-  //     return;
-  //   }
-  //   setAppWindowState("maximized");
-  //   window.requestAnimationFrame(() => appWindowRef.current?.focus());
-  // };
 
   return (
     <div className="content-page verticals-page page-enter">
@@ -418,78 +407,6 @@ function Verticals({ go }: { go: (page: Page) => () => void }) {
           </article>
         ))}
       </div>
-      {/* <section
-        aria-labelledby="app-experience-title"
-        className={`service-app-showcase${isAppShowcaseHighlighted ? " service-app-showcase-highlighted" : ""}`}
-        ref={appShowcaseRef}
-      >
-        <div className={`service-app-window is-${appWindowState}`} ref={appWindowRef} tabIndex={-1}>
-          <header className="service-app-window-bar">
-            <div className="service-app-window-title">
-              <span aria-hidden="true" /> <span>Ridsmart Services app</span>
-            </div>
-            <div className="service-app-window-controls" aria-label="Application window controls">
-              {appWindowState === "minimized" ? (
-                <button aria-label="Restore application window" data-tooltip="Restore" onClick={() => setAppWindowState("normal")} type="button">
-                  <Maximize2 size={14} aria-hidden="true" />
-                </button>
-              ) : (
-                <button
-                  aria-label={appWindowState === "maximized" ? "Restore application window" : "Maximize application window"}
-                  data-tooltip={appWindowState === "maximized" ? "Restore" : "Expand"}
-                  onClick={toggleAppWindowSize}
-                  type="button"
-                >
-                  {appWindowState === "maximized" ? <Minimize2 size={14} aria-hidden="true" /> : <Maximize2 size={14} aria-hidden="true" />}
-                </button>
-              )}
-            </div>
-          </header>
-          {appWindowState !== "minimized" && (
-            <div className="service-app-showcase-content">
-              <div className="service-app-tabs" role="tablist" aria-label="Service app experiences">
-                {services.map(({ icon: Icon, number, title, appUrl }) => (
-                  <button
-                    aria-controls={`service-app-panel-${number}`}
-                    aria-selected={selectedServiceNumber === number}
-                    className={selectedServiceNumber === number ? "active" : ""}
-                    id={`service-app-tab-${number}`}
-                    key={number}
-                    onClick={() => {
-                      setSelectedServiceNumber(number);
-                      if (appUrl) {
-                        navigate(appUrl);
-                      }
-                    }}
-                    role="tab"
-                    type="button"
-                  >
-                    <Icon size={16} aria-hidden="true" /> {title}
-                  </button>
-                ))}
-              </div>
-              <div
-                aria-labelledby={`service-app-tab-${selectedService.number}`}
-                className="service-app-panel"
-                id={`service-app-panel-${selectedService.number}`}
-                role="tabpanel"
-              >
-                <span className={`service-icon service-icon-${selectedService.number}`}>
-                  <SelectedIcon size={22} strokeWidth={1.8} />
-                </span>
-                <div>
-                  <p className="service-app-eyebrow">{selectedService.number} / APP EXPERIENCE</p>
-                  <h3>{selectedService.title}</h3>
-                  <p>{selectedService.appSummary}</p>
-                </div>
-                <ul>
-                  {selectedService.appFeatures.map((feature) => <li key={feature}>{feature}</li>)}
-                </ul>
-              </div>
-            </div>
-          )}
-        </div>
-      </section> */}
       <section
         className="service-team-cta"
         aria-labelledby="service-team-cta-title"
@@ -889,7 +806,7 @@ export function Applications() {
       setPhoneVerified(false);
       setRegisterStatus("verified");
       navigate(
-        `/ridsmart-services-app/academy-coaching/${ROLE_ROUTE[nextAuth.role]}`,
+        `/ridsmart-services-app/academy-c\\\\\\\\\\\\\\\\\\\\\\\\\\\oaching/${ROLE_ROUTE[nextAuth.role]}`,
         { replace: true },
       );
     } catch (registerError) {
@@ -924,7 +841,7 @@ export function Applications() {
     setStoredAuth(null);
     setError("");
     setSuccessMessage("You have been logged out successfully.");
-    navigate("/ridsmart-services-app/academy-coaching", { replace: true });
+    navigate("/services", { replace: true });
   };
 
   if (service && activeService.slug !== "academy-coaching") {
