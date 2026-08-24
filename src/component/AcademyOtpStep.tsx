@@ -44,6 +44,8 @@ export function AcademyOtpStep({
           </p>
         </div>
 
+
+
         <div className="academy-login-form academy-otp-card">
           <div className="academy-otp-header">
             <h2>{isVerified ? "Verification successful" : "Verify OTP"}</h2>
