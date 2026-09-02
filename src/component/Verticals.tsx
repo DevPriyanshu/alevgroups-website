@@ -40,6 +40,7 @@ const ROLE_ROUTE: Record<UserRole, string> = {
 };
 
 export type AuthState = {
+  id: number;
   role: UserRole;
   token: string;
   email: string;
@@ -122,6 +123,7 @@ const getStoredAuth = (): AuthState | null => {
     const role = toUserRole(parsed.role);
 
     return {
+      id: Number(parsed.id ?? 0),
       role,
       token:
         parsed.token ||
@@ -156,6 +158,7 @@ const setStoredAuth = (auth: AuthState | null) => {
 const normalizeAuthResponse = (response: AuthResponse): AuthState => ({
   // Some API versions send the authority in `type` (or prefix it with ROLE_).
   // Prefer `role`, but use `type` when role is absent or only the default USER.
+  id: Number(response.id ?? 0),
   role:
     toUserRole(response.role) !== "USER"
       ? toUserRole(response.role)
@@ -493,7 +496,7 @@ export function Applications() {
   }, [resendCooldown]);
 
   useEffect(() => {
-    if (!auth?.token) {
+    if (!auth?.token || !auth?.id) {
       return;
     }
 
@@ -503,7 +506,9 @@ export function Applications() {
       try {
         const data = await runRequest(() =>
           fetchWithToken<{ message?: string; total?: number; data?: unknown }>(
-            auth.role === "USER" ? "/api/user/profile" : "/api/academies",
+            auth.role === "USER"
+              ? `/api/user-info/${auth.id}`
+              : "/api/academies",
             auth.token,
             { method: "GET" },
           ),
@@ -527,7 +532,7 @@ export function Applications() {
     return () => {
       ignore = true;
     };
-  }, [auth?.token, auth?.role]);
+  }, [auth?.token, auth?.role, auth?.id]);
 
   useEffect(() => {
     if (!auth || activeService.slug !== "academy-coaching") {
