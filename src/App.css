@@ -2342,6 +2342,14 @@ h2 em {
 .admin-status.active { background: color-mix(in srgb, var(--forest) 13%, transparent); color: var(--forest); }
 .admin-status.pending { background: color-mix(in srgb, var(--lime) 16%, transparent); color: var(--accent); }
 .admin-table-row button, .admin-class-list button { border: 0; padding: 0; background: transparent; color: var(--accent); cursor: pointer; font: 800 10px "Manrope", sans-serif; text-decoration: underline; text-underline-offset: 4px; }
+.visitor-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+.visitor-table { width: 100%; min-width: 780px; border-collapse: collapse; text-align: left; }
+.visitor-table th { padding: 11px 12px; background: color-mix(in srgb, var(--surface) 72%, transparent); color: var(--muted); font: 700 8px "DM Mono", monospace; letter-spacing: .07em; text-transform: uppercase; }
+.visitor-table td { padding: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; vertical-align: top; }
+.visitor-table td strong, .visitor-table td small { display: block; }
+.visitor-table td strong { color: var(--ink); font-size: 11px; }
+.visitor-table td small { margin-top: 3px; color: var(--muted); font-size: 9px; }
+.app-shell[data-theme="dark"] .visitor-table th { background: rgba(255, 255, 255, .04); }
 .admin-class-list { display: grid; gap: 9px; }
 .admin-class-list article { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 13px; padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: color-mix(in srgb, var(--bg) 92%, var(--surface)); }
 .admin-class-icon { display: grid; place-items: center; width: 39px; height: 39px; border-radius: 50%; background: color-mix(in srgb, var(--lime) 16%, transparent); color: var(--accent); }
@@ -2585,6 +2593,7 @@ h2 em {
 .notification-setting input { accent-color: var(--accent); }
 .learner-save-message { margin: 0; color: var(--forest); font-size: 11px; }
 .learner-settings-actions { margin-top: 0; }
+.tracking-status { position: fixed; right: 18px; bottom: 18px; z-index: 30; margin: 0; padding: 10px 13px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); box-shadow: var(--ui-shadow); color: var(--muted); font-size: 10px; }
 .app-shell[data-theme="dark"] .learner-hero-card { border-color: rgba(255, 181, 71, .24); background: radial-gradient(circle at 90% 20%, rgba(255, 181, 71, .22), transparent 25%), linear-gradient(135deg, #0a1d2d, #102e3a 65%, #112d23); box-shadow: 0 22px 46px rgba(0,0,0,.3); }
 .app-shell[data-theme="dark"] .learner-quick-actions button, .app-shell[data-theme="dark"] .live-class-card, .app-shell[data-theme="dark"] .recording-card, .app-shell[data-theme="dark"] .learner-plan-section, .app-shell[data-theme="dark"] .learner-settings-section { background: color-mix(in srgb, var(--surface) 94%, #000); border-color: rgba(143, 166, 191, .2); box-shadow: 0 12px 28px rgba(0,0,0,.2); }
 .app-shell[data-theme="dark"] .learner-quick-actions button.active { border-color: rgba(255, 181, 71, .46); background: rgba(255, 181, 71, .11); }

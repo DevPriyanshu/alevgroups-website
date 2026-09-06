@@ -9,6 +9,7 @@ import {
   LogOut,
   PlayCircle,
   Plus,
+  RefreshCw,
   Save,
   Settings,
   UserRound,
@@ -18,6 +19,7 @@ import {
 import { useState } from "react";
 import type { AuthState } from "./Verticals";
 import { AcademyFeedback } from "./AcademyFeedback";
+import { API_BASE_URL } from "../config/api";
 
 type ProtectedData = {
   message?: string;
@@ -32,6 +34,24 @@ type AcademyDashboardProps = {
   successMessage: string;
   onLogout: () => void;
 };
+
+type VisitorTracking = {
+  id?: number | string;
+  visitCount?: number | null;
+  fullName?: string | null;
+  deviceName?: string | null;
+  deviceModel?: string | null;
+  deviceType?: string | null;
+  location?: string | null;
+  city?: string | null;
+  country?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+};
+
+type VisitorTrackingResponse = VisitorTracking | VisitorTracking[] | { data?: VisitorTracking[] };
 
 const scrollToSection = (id: string) => {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -146,12 +166,39 @@ function LearnerDashboard({ auth, error, successMessage, onLogout }: AcademyDash
 }
 
 function AdminWorkspace({ auth, error, successMessage, onLogout }: AcademyDashboardProps) {
-  type AdminPanel = "learners" | "classes" | "recordings" | "live" | "stats";
+  type AdminPanel = "learners" | "classes" | "recordings" | "live" | "stats" | "visitors";
   const [activePanel, setActivePanel] = useState<AdminPanel | null>(null);
+  const [visitorTracking, setVisitorTracking] = useState<VisitorTracking[]>([]);
+  const [visitorLoading, setVisitorLoading] = useState(false);
+  const [visitorError, setVisitorError] = useState("");
   const isSystemAdmin = auth.role === "SYSTEM_ADMIN";
   const showPanel = (panel: AdminPanel) => {
     setActivePanel(panel);
     window.requestAnimationFrame(() => scrollToSection("admin-workspace-content"));
+  };
+
+  const loadVisitorTracking = async () => {
+    setVisitorLoading(true);
+    setVisitorError("");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/visitor/tracking`, {
+        headers: { Authorization: `Bearer ${auth.token}` },
+      });
+      if (!response.ok) throw new Error(`Unable to load visitor tracking (${response.status}).`);
+
+      const result = (await response.json()) as VisitorTrackingResponse;
+      const records = Array.isArray(result)
+        ? result
+        : "data" in result && Array.isArray(result.data)
+          ? result.data
+          : [result as VisitorTracking];
+      setVisitorTracking(records);
+    } catch (loadError) {
+      setVisitorError(loadError instanceof Error ? loadError.message : "Unable to load visitor tracking.");
+    } finally {
+      setVisitorLoading(false);
+    }
   };
   const learners = [
     ["Aarav Singh", "aarav.s@example.com", "Academy Plus", "Active"],
@@ -191,6 +238,7 @@ function AdminWorkspace({ auth, error, successMessage, onLogout }: AcademyDashbo
         <button className={activePanel === "recordings" ? "active" : ""} aria-pressed={activePanel === "recordings"} type="button" onClick={() => showPanel("recordings")}><PlayCircle size={18} /><span>Recordings</span></button>
         <button className={activePanel === "live" ? "active" : ""} aria-pressed={activePanel === "live"} type="button" onClick={() => showPanel("live")}><Video size={18} /><span>All live classes</span></button>
         {isSystemAdmin && <button className={activePanel === "stats" ? "active" : ""} aria-pressed={activePanel === "stats"} type="button" onClick={() => showPanel("stats")}><CalendarDays size={18} /><span>App statistics</span></button>}
+        {isSystemAdmin && <button className={activePanel === "visitors" ? "active" : ""} aria-pressed={activePanel === "visitors"} type="button" onClick={() => { showPanel("visitors"); void loadVisitorTracking(); }}><UsersRound size={18} /><span>Visitor tracking</span></button>}
       </nav>
 
       <div className="admin-workspace-content" id="admin-workspace-content">
@@ -200,6 +248,7 @@ function AdminWorkspace({ auth, error, successMessage, onLogout }: AcademyDashbo
         {activePanel === "recordings" && <section className="admin-panel"><div className="admin-panel-heading"><div><p className="section-label">CONTENT LIBRARY</p><h2>Class recordings</h2></div><button className="button button-sun" type="button"><Plus size={16} /> Upload recording</button></div><div className="admin-class-list">{classes.map(([title, time, tutor]) => <article key={title}><span className="admin-class-icon"><PlayCircle size={20} /></span><div><h3>{title}</h3><p>{tutor} · Recorded {time}</p></div><span>Available</span><button type="button">View</button></article>)}</div></section>}
         {activePanel === "live" && <section className="admin-panel"><div className="admin-panel-heading"><div><p className="section-label">LIVE SCHEDULE</p><h2>All live classes</h2></div><button className="learner-text-button" type="button">Open full calendar <CalendarDays size={15} /></button></div><div className="admin-class-list">{classes.map(([title, time, tutor, count], index) => <article key={title}><span className="admin-class-icon"><Video size={20} /></span><div><span className={index === 0 ? "live-indicator" : "admin-upcoming"}>{index === 0 ? <><i /> Starting soon</> : "Upcoming"}</span><h3>{title}</h3><p>{time} · {tutor}</p></div><span>{count}</span><button type="button">Open</button></article>)}</div></section>}
         {activePanel === "stats" && isSystemAdmin && <section className="admin-panel" aria-labelledby="app-statistics-title"><div className="admin-panel-heading"><div><p className="section-label">PLATFORM INSIGHTS</p><h2 id="app-statistics-title">App statistics</h2></div><span className="learner-section-note">Updated today</span></div><div className="admin-stats-grid"><article><span>Visitors today</span><strong>2,864</strong><small>+14.2% from yesterday</small></article><article><span>Total visitors</span><strong>48.6K</strong><small>All-time app visits</small></article><article><span>Total users</span><strong>1,248</strong><small>+86 this month</small></article><article><span>Active academies</span><strong>24</strong><small>+3 this quarter</small></article><article><span>Active subscriptions</span><strong>986</strong><small>79% of users</small></article><article><span>Live classes</span><strong>12</strong><small>Scheduled this week</small></article><article><span>Recording views</span><strong>4,382</strong><small>Last 30 days</small></article><article><span>Completion rate</span><strong>68%</strong><small>Across active learners</small></article></div></section>}
+        {activePanel === "visitors" && isSystemAdmin && <section className="admin-panel" aria-labelledby="visitor-tracking-title"><div className="admin-panel-heading"><div><p className="section-label">PUBLIC LANDING ACTIVITY</p><h2 id="visitor-tracking-title">Visitor tracking</h2></div><button className="button button-secondary" type="button" onClick={() => void loadVisitorTracking()} disabled={visitorLoading}><RefreshCw size={15} aria-hidden="true" /> {visitorLoading ? "Loading..." : "Refresh"}</button></div>{visitorError && <AcademyFeedback message={visitorError} tone="error" />}{visitorLoading && visitorTracking.length === 0 ? <p className="learner-section-note">Loading visitor records...</p> : visitorTracking.length === 0 ? <p className="learner-section-note">No visitor records found.</p> : <div className="visitor-table-wrap"><table className="visitor-table"><thead><tr><th>Name</th><th>Visits</th><th>Device</th><th>Type</th><th>Location</th><th>Coordinates</th><th>Updated</th></tr></thead><tbody>{visitorTracking.map((visitor, index) => <tr key={visitor.id ?? `${visitor.fullName}-${index}`}><td>{visitor.fullName || "Website Visitor"}</td><td><strong>{visitor.visitCount ?? 0}</strong></td><td><strong>{visitor.deviceName || "Unknown"}</strong><small>{visitor.deviceModel || ""}</small></td><td>{visitor.deviceType || "Unknown"}</td><td>{visitor.location && visitor.location !== "Unknown" ? visitor.location : [visitor.city, visitor.country].filter((value) => value && value !== "Unknown").join(", ") || "Unknown"}</td><td>{visitor.latitude !== null && visitor.latitude !== undefined && visitor.longitude !== null && visitor.longitude !== undefined ? `${visitor.latitude}, ${visitor.longitude}` : "Not shared"}</td><td>{visitor.updatedAt || visitor.createdAt ? new Date(visitor.updatedAt || visitor.createdAt || "").toLocaleString() : "Unknown"}</td></tr>)}</tbody></table></div>}</section>}
       </div>
     </div>
   );

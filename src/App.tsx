@@ -33,6 +33,7 @@ import Verticals, { Applications } from "./component/Verticals";
 import WhyAlev from "./component/WhyAlev";
 import Contact from "./component/Contact";
 import type { Page } from "./type/Page";
+import { API_BASE_URL } from "./config/api";
 
 const indianLanguages = [
   ["as", "অসমীয়া"],
@@ -115,10 +116,126 @@ function RoutedPage({ Component }: { Component: PageComponent }) {
   return <Component go={go} />;
 }
 
+type LandingTrackingPayload = {
+  fullName: string;
+  deviceName: string;
+  deviceModel: string;
+  deviceType: string;
+  location: string;
+  city: string;
+  country: string;
+  latitude: number | null;
+  longitude: number | null;
+};
+
+type ReverseGeocodeResponse = {
+  display_name?: string;
+  address?: {
+    city?: string;
+    town?: string;
+    village?: string;
+    municipality?: string;
+    county?: string;
+    country?: string;
+  };
+};
+
+function useTrackLandingPage(isHome: boolean) {
+  const [trackingStatus, setTrackingStatus] = useState("");
+
+  useEffect(() => {
+    if (!isHome) return undefined;
+
+    let cancelled = false;
+
+    const sendTrackingInfo = async (coordinates?: GeolocationCoordinates) => {
+      const browserNavigator = navigator as Navigator & {
+        userAgentData?: { platform?: string };
+      };
+      let fullName = "Website Visitor";
+      const storedAuth = localStorage.getItem("ridsmart-academy-auth");
+      if (storedAuth) {
+        try {
+          const parsedAuth = JSON.parse(storedAuth) as { name?: string; fullName?: string };
+          const accountName = parsedAuth.name?.trim() || parsedAuth.fullName?.trim();
+          if (accountName) fullName = accountName;
+        } catch {
+          // Keep the anonymous fallback when the stored session is invalid.
+        }
+      }
+      const latitude = coordinates?.latitude;
+      const longitude = coordinates?.longitude;
+      let location = "Unknown";
+      let city = "Unknown";
+      let country = "Unknown";
+
+      if (latitude !== undefined && longitude !== undefined) {
+        try {
+          const geocodeResponse = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${encodeURIComponent(latitude)}&lon=${encodeURIComponent(longitude)}`,
+            { headers: { Accept: "application/json" } },
+          );
+          if (geocodeResponse.ok) {
+            const geocode = (await geocodeResponse.json()) as ReverseGeocodeResponse;
+            const address = geocode.address;
+            location = geocode.display_name || `${latitude}, ${longitude}`;
+            city = address?.city || address?.town || address?.village || address?.municipality || address?.county || "Unknown";
+            country = address?.country || "Unknown";
+          }
+        } catch {
+          // Keep coordinate data when reverse geocoding is unavailable.
+        }
+      }
+      const payload: LandingTrackingPayload = {
+        fullName,
+        deviceName: browserNavigator.userAgentData?.platform || navigator.platform || "Browser",
+        deviceModel: navigator.userAgent || "Unknown browser",
+        deviceType: "web",
+        location,
+        city,
+        country,
+        latitude: latitude ?? null,
+        longitude: longitude ?? null,
+      };
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/visitor/tracking`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) throw new Error();
+        if (!cancelled) setTrackingStatus("Your app activity was updated.");
+      } catch {
+        if (!cancelled) setTrackingStatus("Unable to update app activity right now.");
+      }
+    };
+
+    if (!navigator.geolocation) {
+      void sendTrackingInfo();
+    } else {
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => void sendTrackingInfo(coords),
+        () => void sendTrackingInfo(),
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+      );
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isHome]);
+
+  return trackingStatus;
+}
+
 function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const page = pathPages[location.pathname] ?? "home";
+  const trackingStatus = useTrackLandingPage(page === "home");
   const isServiceAppRoute =
     location.pathname.startsWith("/ridsmart-services-app") ||
     location.pathname.startsWith("/applications");
@@ -318,6 +435,7 @@ function AppLayout() {
           </button>
         </div>
       )}
+      {trackingStatus && <p className="tracking-status" role="status">{trackingStatus}</p>}
       <header className="site-header">
         <button
           className="brand brand-button"
